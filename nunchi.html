@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NUNCHI 눈치 — Korean Survival Companion</title>
+<meta name="theme-color" content="#2347C5">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:ital,wght@0,400;0,500;1,400&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1F4; --card:#FFFFFF; --card2:#F7F9FB;
+  --ink:#16202B; --sub:#5E6B7A; --faint:#94A0AC;
+  --line:rgba(22,32,43,.10); --line2:rgba(22,32,43,.06);
+  --cobalt:#2347C5; --cobalt-deep:#1A3596; --cobalt-soft:#E8EDFC;
+  --seal:#C93A2E; --seal-soft:#FBECE9;
+  --gold:#B07E16; --gold-soft:#F8F0DC;
+  --green:#25754C; --green-soft:#E4F2EA;
+  --danger:#B3261E;
+  --r:18px; --r-lg:24px;
+  --shadow:0 10px 30px rgba(22,32,43,.07), 0 2px 6px rgba(22,32,43,.05);
+  --disp:'Black Han Sans','Noto Sans KR',sans-serif;
+  --body:'Noto Sans KR',-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:2.5px solid var(--cobalt);outline-offset:2px;border-radius:8px}
+::-webkit-scrollbar{width:0;height:0}
+
+/* ---------- desktop stage ---------- */
+.hangbg{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;font-family:var(--disp);color:rgba(22,32,43,.045);line-height:1}
+.hangbg span{position:absolute;font-size:180px;user-select:none}
+@media(max-width:560px){.hangbg{display:none}}
+#app{position:relative;z-index:1;max-width:432px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;background:var(--bg);box-shadow:0 0 0 1px var(--line2),0 0 60px rgba(22,32,43,.08)}
+@media(max-width:432px){#app{box-shadow:none}}
+
+/* ---------- header ---------- */
+.topbar{position:sticky;top:0;z-index:20;background:rgba(238,241,244,.92);backdrop-filter:blur(10px);padding:14px 18px 10px}
+.danstripe{position:absolute;left:0;top:0;right:0;height:5px;background:repeating-linear-gradient(90deg,var(--seal) 0 14px,var(--gold) 14px 28px,var(--cobalt) 28px 42px,var(--green) 42px 56px);opacity:.85}
+.brandrow{display:flex;align-items:center;gap:12px}
+.stamp{flex:none;width:44px;height:44px;border-radius:12px;background:var(--seal);color:#fff;display:grid;place-items:center;font-family:var(--disp);font-size:23px;transform:rotate(-4deg);box-shadow:2px 3px 0 rgba(22,32,43,.18)}
+.brand h1{font-family:var(--disp);font-size:25px;font-weight:400;letter-spacing:.5px;line-height:1}
+.brand h1 em{font-style:normal;font-family:var(--mono);font-size:11px;letter-spacing:3.5px;color:var(--cobalt);vertical-align:3px;margin-left:7px}
+.brand p{font-size:12px;color:var(--sub);margin-top:3px}
+.iconbtn{flex:none;margin-left:auto;width:38px;height:38px;border-radius:50%;border:1.5px solid var(--line);background:var(--card);display:grid;place-items:center;color:var(--sub);transition:.15s}
+.iconbtn:active{transform:scale(.92)}
+
+/* ---------- views ---------- */
+main{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:10px 16px 20px}
+.view{display:none;animation:vin .25s ease}
+.view.active{display:block}
+@keyframes vin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.vh{display:flex;align-items:baseline;gap:8px;margin:14px 2px 10px}
+.vh h2{font-family:var(--disp);font-weight:400;font-size:21px;letter-spacing:.3px}
+.vh span{font-size:12px;color:var(--sub)}
+.vh .mini{margin-left:auto}
+
+/* ---------- chips ---------- */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:6px 2px;scrollbar-width:none;flex:none}
+.chip{flex:none;display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap;transition:.15s}
+.chip.active{background:var(--cobalt);border-color:var(--cobalt);color:#fff;box-shadow:0 4px 12px rgba(35,71,197,.25)}
+.chip:active{transform:scale(.95)}
+.tag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase}
+.tag.t-safe{background:var(--green-soft);color:var(--green)}
+.tag.t-friends{background:var(--gold-soft);color:var(--gold)}
+.tag.t-know{background:var(--seal-soft);color:var(--seal)}
+.tag.t-cat{background:var(--cobalt-soft);color:var(--cobalt)}
+.tag.t-plain{background:var(--card2);color:var(--sub);border:1px solid var(--line)}
+
+/* ---------- cards ---------- */
+.card{background:var(--card);border:1px solid var(--line2);border-radius:var(--r);box-shadow:var(--shadow)}
+.stack>*+*{margin-top:12px}
+
+/* input */
+.inputcard{padding:14px 14px 12px;margin-top:4px}
+.inputcard textarea{width:100%;border:none;resize:none;font-family:var(--body);font-size:17px;line-height:1.5;color:var(--ink);background:transparent;min-height:66px}
+.inputcard textarea::placeholder{color:var(--faint)}
+.inrow{display:flex;align-items:center;gap:8px;padding-top:10px;border-top:1px dashed var(--line)}
+.mic{width:40px;height:40px;border-radius:50%;background:var(--cobalt-soft);color:var(--cobalt);display:grid;place-items:center;transition:.2s}
+.mic.rec{background:var(--seal);color:#fff;animation:pulse 1.1s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(201,58,46,.4)}50%{box-shadow:0 0 0 9px rgba(201,58,46,0)}}
+.ccount{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+.pbtn{background:var(--cobalt);color:#fff;font-weight:700;font-size:15px;padding:10px 20px;border-radius:999px;letter-spacing:.3px;box-shadow:0 6px 16px rgba(35,71,197,.3);transition:.15s;display:flex;align-items:center;gap:7px}
+.pbtn:active{transform:scale(.95)}
+.ghost{font-size:12.5px;color:var(--sub);border:1.5px solid var(--line);border-radius:999px;padding:7px 12px;font-weight:500}
+.ghost:active{transform:scale(.95)}
+
+/* result */
+.rescard{position:relative;padding:18px 18px 16px;overflow:hidden}
+.rescard .sealmark{position:absolute;top:14px;right:12px;transform:rotate(8deg);border:2.5px solid var(--seal);color:var(--seal);font-family:var(--disp);font-size:12px;padding:3px 7px;border-radius:6px;opacity:.85;letter-spacing:1px}
+.ctxline{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.kbig{font-family:var(--disp);font-size:25px;line-height:1.35;letter-spacing:.3px;word-break:keep-all}
+.rom{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:6px;letter-spacing:.2px}
+.nat{font-size:19px;font-weight:700;color:var(--cobalt-deep);margin-top:8px;line-height:1.4}
+.resacts{display:flex;gap:8px;margin-top:14px;align-items:center}
+.resacts .iconbtn{width:34px;height:34px;border-radius:10px;font-size:14px}
+.resacts .spacer{flex:1}
+.sec{margin-top:16px;padding-top:14px;border-top:1px dashed var(--line)}
+.sect{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:900;letter-spacing:1.6px;text-transform:uppercase;color:var(--sub);margin-bottom:9px}
+.tori{width:34px;height:34px;flex:none}
+.sect .tname{color:var(--cobalt);letter-spacing:.4px;text-transform:none;font-size:12.5px;font-weight:700}
+.mean{font-size:14.5px;color:var(--ink);background:var(--card2);border:1px solid var(--line2);border-left:4px solid var(--cobalt);border-radius:12px;padding:12px 14px}
+.culture{font-size:14px;color:var(--sub);background:linear-gradient(135deg,rgba(176,126,22,.06),rgba(176,126,22,.02));border:1px dashed rgba(176,126,22,.4);border-radius:12px;padding:12px 14px}
+.culture b{color:var(--gold)}
+.ctxcard{border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:8px;background:var(--card)}
+.ctxcard .head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.abc{flex:none;width:24px;height:24px;border-radius:8px;background:var(--cobalt);color:#fff;font-weight:900;font-size:12.5px;display:grid;place-items:center}
+.ctxcard h4{font-size:14.5px;font-weight:700}
+.ctxcard p{font-size:13.5px;color:var(--ink);margin-top:6px}
+.ctxcard .likely{font-size:12.5px;color:var(--sub);margin-top:7px;padding-top:7px;border-top:1px dashed var(--line2)}
+.ctxcard .likely b{color:var(--sub);text-transform:uppercase;font-size:10px;letter-spacing:1.2px}
+.helplist{margin-top:10px;background:var(--card2);border:1px solid var(--line2);border-radius:12px;padding:11px 14px;font-size:13px;color:var(--sub)}
+.helplist li{margin:5px 0 5px 16px}
+.slanglink{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--gold-soft);color:var(--gold);font-weight:700;font-size:13px;border:1px dashed rgba(176,126,22,.5)}
+.relrow{display:flex;gap:6px;flex-wrap:wrap}
+.relbtn{padding:7px 12px;border-radius:999px;border:1.5px solid var(--line);font-size:12.5px;font-weight:700;color:var(--sub);background:var(--card);transition:.15s}
+.relbtn.active{background:var(--ink);border-color:var(--ink);color:#fff}
+.replycard{margin-top:10px;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--card2)}
+.replycard .k{font-size:17px;font-weight:700;word-break:keep-all}
+.replycard .r{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:4px}
+.replycard .e{font-size:13px;color:var(--sub);margin-top:5px}
+.replyacts{display:flex;gap:6px;margin-top:9px}
+.replyacts button{font-size:11.5px;font-weight:700;color:var(--cobalt);background:var(--cobalt-soft);border-radius:999px;padding:5px 11px}
+
+/* slang */
+.searchwrap{position:relative;margin:6px 2px 8px}
+.searchwrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--faint)}
+.searchwrap input{width:100%;padding:12px 14px 12px 40px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);font-family:var(--body);font-size:15px;color:var(--ink)}
+.slangcard{padding:14px 16px;display:block;width:100%;text-align:left;transition:.15s}
+.slangcard:active{transform:scale(.985)}
+.slangcard .row1{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.slangcard .term{font-family:var(--disp);font-size:20px;letter-spacing:.3px}
+.slangcard .full{font-size:13px;color:var(--cobalt);font-weight:700}
+.slangcard .row2{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:7px}
+.slangcard .men{font-size:13.5px;color:var(--sub);margin-top:7px}
+.star{margin-left:auto;flex:none;font-size:17px;color:var(--faint);padding:2px 6px}
+.star.on{color:var(--gold)}
+.exwrap{margin-top:10px;border-radius:12px;background:var(--card2);border:1px solid var(--line2);padding:11px 13px;font-size:13.5px}
+.bub{display:block;word-break:keep-all}
+.bub.me{background:var(--cobalt);color:#fff;border-radius:14px 14px 4px 14px;padding:8px 12px;max-width:88%;margin-left:auto}
+.bub.them{background:#fff;border:1px solid var(--line);border-radius:14px 14px 14px 4px;padding:8px 12px;max-width:88%}
+.bub+ .bub{margin-top:8px}
+.exen{font-size:12px;color:var(--sub);margin-top:8px}
+.when{font-size:13.5px;color:var(--ink);margin-top:8px}
+.when b,.mean b{color:var(--cobalt-deep)}
+
+/* situations */
+.sitcard{display:flex;gap:14px;align-items:center;padding:16px;width:100%;text-align:left;transition:.15s}
+.sitcard:active{transform:scale(.985)}
+.sitico{flex:none;width:50px;height:50px;border-radius:16px;display:grid;place-items:center;font-size:25px;background:var(--card2);border:1px solid var(--line2)}
+.sitcard h3{font-size:16.5px;font-weight:900}
+.sitcard h3 span{font-family:var(--disp);font-weight:400;font-size:14px;color:var(--cobalt);margin-left:7px;letter-spacing:.5px}
+.sitcard p{font-size:12.5px;color:var(--sub);margin-top:3px}
+.line{border:1px solid var(--line2);border-radius:14px;padding:12px 14px;background:var(--card)}
+.line+.line{margin-top:8px}
+.line .k{font-weight:700;font-size:16px;word-break:keep-all}
+.line .r{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:3px}
+.line .e{font-size:13.5px;color:var(--cobalt-deep);margin-top:5px;font-weight:500}
+.line .n{font-size:12.5px;color:var(--sub);margin-top:6px;padding-top:6px;border-top:1px dashed var(--line2)}
+.sitintro{font-size:13.5px;color:var(--ink);background:var(--card2);border:1px solid var(--line2);border-radius:14px;padding:13px 15px;margin-bottom:14px}
+
+/* saved */
+.savedcard{padding:13px 16px;display:block;width:100%;text-align:left}
+.savedcard .t{font-weight:900;font-size:15px;display:flex;gap:8px;align-items:center}
+.savedcard .t .tt{font-family:var(--disp);font-weight:400}
+.savedcard p{font-size:13px;color:var(--sub);margin-top:4px}
+.histcard{display:flex;gap:10px;align-items:center;padding:11px 16px}
+.histcard .q{flex:1;min-width:0}
+.histcard .q b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.histcard .q span{font-size:11.5px;color:var(--faint);font-family:var(--mono)}
+
+/* empty / fallback */
+.emptybox{text-align:center;padding:34px 20px 10px}
+.emptybox .tori{width:76px;height:76px;margin:0 auto 12px;display:block}
+.emptybox h3{font-family:var(--disp);font-weight:400;font-size:20px}
+.emptybox p{font-size:13.5px;color:var(--sub);margin-top:6px;max-width:300px;margin-left:auto;margin-right:auto}
+.tryrow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:16px}
+.fallback{padding:18px}
+.fallback .big{font-size:15.5px;font-weight:700;margin-top:8px}
+.fallback p{font-size:13.5px;color:var(--sub);margin-top:8px}
+.fallback .fbacts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+
+/* tabbar */
+.tabbar{flex:none;display:flex;background:rgba(255,255,255,.96);border-top:1px solid var(--line2);padding:6px 8px calc(8px + env(safe-area-inset-bottom));backdrop-filter:blur(10px)}
+.tabbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 0 3px;color:var(--faint);border-radius:12px;transition:.15s}
+.tabbtn .ti{width:23px;height:23px}
+.tabbtn .tl{font-size:10.5px;font-weight:700;letter-spacing:.4px}
+.tabbtn .tk{font-size:9px;opacity:.75;font-weight:500}
+.tabbtn.active{color:var(--cobalt)}
+.tabbtn.active .dot{width:4px;height:4px;border-radius:50%;background:var(--seal);margin-top:2px}
+.tabbtn .dot{width:4px;height:4px;border-radius:50%;background:transparent;margin-top:2px}
+
+/* sheet + modal + toast */
+.overlay{position:fixed;inset:0;background:rgba(22,32,43,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center;animation:fade .2s ease}
+@keyframes fade{from{opacity:0}}
+.sheet{background:var(--card);width:100%;max-width:432px;max-height:90dvh;overflow-y:auto;border-radius:24px 24px 0 0;padding:10px 20px calc(22px + env(safe-area-inset-bottom));animation:up .28s cubic-bezier(.2,.8,.25,1)}
+@keyframes up{from{transform:translateY(60px);opacity:0}}
+.grab{width:44px;height:5px;border-radius:99px;background:var(--line);margin:4px auto 14px}
+.sheethead{display:flex;align-items:flex-start;gap:10px}
+.sheethead .term{font-family:var(--disp);font-size:27px;line-height:1.2;word-break:keep-all}
+.sheethead .full{font-size:14px;color:var(--cobalt);font-weight:700;margin-top:2px}
+.sheet .tags{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 2px}
+.sheet .sect{margin-top:18px}
+.modal{position:fixed;inset:0;background:rgba(22,32,43,.5);z-index:60;display:grid;place-items:center;padding:22px;animation:fade .2s ease}
+.modalbox{background:var(--card);border-radius:24px;max-width:400px;width:100%;max-height:86dvh;overflow-y:auto;padding:24px}
+.pipeline{display:flex;flex-direction:column;gap:6px;margin:14px 0}
+.pipe{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--line2);border-radius:12px;padding:9px 13px;font-size:13.5px;font-weight:700}
+.pipe .no{font-family:var(--mono);font-size:10.5px;color:var(--cobalt);width:18px}
+.pipe small{font-weight:400;color:var(--sub);margin-left:auto;font-size:11.5px}
+.about p{font-size:13.5px;color:var(--sub);margin-top:10px}
+.about b{color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%) translateY(10px);background:var(--ink);color:#fff;font-size:13.5px;font-weight:600;padding:10px 18px;border-radius:999px;z-index:99;opacity:0;pointer-events:none;transition:.25s;box-shadow:var(--shadow);max-width:88%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="hangbg" aria-hidden="true">
+  <span style="left:-30px;top:8%">ㅎ</span><span style="right:-10px;top:22%">ㅋ</span>
+  <span style="left:4%;bottom:16%">ㅇ</span><span style="right:6%;bottom:5%">ㄱ</span>
+  <span style="left:38%;top:45%">눈</span><span style="right:30%;top:4%">치</span>
+</div>
+
+<div id="app">
+  <header class="topbar">
+    <div class="danstripe" aria-hidden="true"></div>
+    <div class="brandrow">
+      <div class="stamp" aria-hidden="true">통</div>
+      <div class="brand">
+        <h1>눈치<em>NUNCHI</em></h1>
+        <p>Read between the Korean lines.</p>
+      </div>
+      <button class="iconbtn" id="infoBtn" aria-label="About NUNCHI">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M12 12v4"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- ============ TRANSLATE ============ -->
+    <section class="view active" id="v-translate">
+      <div class="chips" id="dirRow" style="margin-top:6px">
+        <button class="chip active" data-dir="k2e">🇰🇷 Korean → English</button>
+        <button class="chip" data-dir="e2k">English → 🇰🇷 Korean</button>
+      </div>
+      <div class="chips" id="sitChips" aria-label="Situation"></div>
+      <div class="card inputcard">
+        <textarea id="q" rows="3" placeholder="Type or paste Korean here…"></textarea>
+        <div class="inrow">
+          <button class="mic" id="micBtn" aria-label="Speak Korean">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+          </button>
+          <button class="ghost" id="pasteBtn">Paste</button>
+          <span class="ccount" id="ccount">0</span>
+          <button class="pbtn" id="goBtn">Decode <span aria-hidden="true">→</span></button>
+        </div>
+      </div>
+      <div id="result" class="stack" style="margin-top:14px"></div>
+      <div id="empty" class="emptybox">
+        <svg class="tori" viewBox="0 0 64 64" aria-hidden="true">
+          <circle cx="14" cy="18" r="8" fill="#F6A73C"/><circle cx="50" cy="18" r="8" fill="#F6A73C"/>
+          <circle cx="14" cy="18" r="4.5" fill="#FBD9B0"/><circle cx="50" cy="18" r="4.5" fill="#FBD9B0"/>
+          <circle cx="32" cy="34" r="23" fill="#F6A73C"/>
+          <rect x="27" y="13" width="3.2" height="9" rx="1.6" fill="#3A2A1B"/><rect x="32" y="12" width="3.2" height="10" rx="1.6" fill="#3A2A1B"/><rect x="37" y="13" width="3.2" height="9" rx="1.6" fill="#3A2A1B"/>
+          <ellipse cx="32" cy="44" rx="13" ry="10" fill="#FDF6EC"/>
+          <circle cx="21.5" cy="33" r="2.7" fill="#231A12"/><circle cx="42.5" cy="33" r="2.7" fill="#231A12"/>
+          <path d="M29 41.5 q3 2.6 6 0" stroke="#231A12" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          <path d="M30.5 38 h3 l-1.5 2.2 z" fill="#231A12"/>
+          <circle cx="13" cy="41" r="3.4" fill="#F6B1A3" opacity=".75"/><circle cx="51" cy="41" r="3.4" fill="#F6B1A3" opacity=".75"/>
+        </svg>
+        <h3>What did Korea just say?</h3>
+        <p>Paste a text from your landlord, a KakaoTalk message, a sign, or anything Korean — I'll decode the <b>meaning</b>, the <b>context</b>, and what to <b>say back</b>.</p>
+        <div class="tryrow" id="tryRow"></div>
+      </div>
+    </section>
+
+    <!-- ============ SLANG ============ -->
+    <section class="view" id="v-slang">
+      <div class="vh"><h2>슬랭 사전</h2><span>shortcuts · slang · 신조어</span></div>
+      <div class="searchwrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="slangSearch" type="search" placeholder="Search — try 내돈내산 or 갑분싸" aria-label="Search slang">
+      </div>
+      <div class="chips" id="slangCats"></div>
+      <div id="slangList" class="stack" style="margin-top:10px"></div>
+    </section>
+
+    <!-- ============ SITUATIONS ============ -->
+    <section class="view" id="v-sit">
+      <div class="vh"><h2>생존 상황</h2><span>survival kits for real life</span></div>
+      <div id="sitList" class="stack"></div>
+    </section>
+
+    <!-- ============ SAVED ============ -->
+    <section class="view" id="v-saved">
+      <div class="vh"><h2>모아두기</h2><span>bookmarks &amp; history</span></div>
+      <div id="savedList" class="stack"></div>
+    </section>
+  </main>
+
+  <nav class="tabbar" aria-label="Main">
+    <button class="tabbtn active" data-tab="translate">
+      <svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H5l-2 2V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z"/><path d="M8 11h8M8 15h5"/></svg>
+      <span class="tl">Decode</span><span class="tk">해석</span><span class="dot"></span>
+    </button>
+    <button class="tabbtn" data-tab="slang">
+      <svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17V7l8 5 8-5v10"/><path d="M4 17h4m8 0h4M4 7h4m8 0h4"/></svg>
+      <span class="tl">Slang</span><span class="tk">슬랭</span><span class="dot"></span>
+    </button>
+    <button class="tabbtn" data-tab="sit">
+      <svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+      <span class="tl">Situations</span><span class="tk">상황</span><span class="dot"></span>
+    </button>
+    <button class="tabbtn" data-tab="saved">
+      <svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg>
+      <span class="tl">Saved</span><span class="tk">저장</span><span class="dot"></span>
+    </button>
+  </nav>
+</div>
+
+<div id="toast" class="toast" role="status"></div>
+<script>
+"use strict";
+/* ============================================================
+   NUNCHI 눈치 — Korean Survival Companion (offline prototype)
+   All data below is a hand-curated library. The result-card
+   layout is designed to be powered by an AI engine in product.
+   ============================================================ */
+const REL_LABEL={friend:"Friend 친구",prof:"Professor 교수님",boss:"Boss 상사",stranger:"Stranger 모르는 사람",lord:"Landlord 집주인",service:"Service 고객센터"};
+const CAT_LABEL={ess:"Essentials 필수",cafe:"Cafe & Food 카페·음식",chat:"Chat & Internet 채팅",feel:"Feelings 감정",love:"Love & Friendship 연애",school:"School & Work 학교·직장",life:"Life 라이프",trend:"Trending 요즘 것들",cult:"K-culture words 문화"};
+const TIER_LABEL={safe:"✓ Safe to use",friends:"⚡ With friends only",know:"👀 Understand only"};
+/* ============ SLANG / 줄임말 / 신조어 LIBRARY ============ */
+const SLANG=[
+{t:"아아",f:"아이스 아메리카노",en:"Iced Americano",cat:"cafe",tier:"safe",when:"At any cafe — so universal that menus, apps and staff all use it. Order with: 아아 한 잔 주세요.",ex:{k:"주문 도와드릴까요? / 네, 아아 두 잔이요!",e:"Can I take your order? / Yes, two iced Americanos, please!"},note:"Korea runs on iced Americanos — people happily drink them in January. Nobody blinks."},
+{t:"내돈내산",f:"내가 돈을 내고 직접 산 것",en:"I bought this with my own money",cat:"life",tier:"safe",when:"Used when recommending something, to prove the review is honest and unsponsored — huge in live-shopping streams, blogs and Instagram.",ex:{k:"이거 내돈내산인데, 진짜 괜찮아.",e:"I bought this myself — it's genuinely good."},note:"If a review says 내돈내산, the reviewer is swearing they weren't paid to say it."},
+{t:"알잘딱깔센",f:"알아서 잘, 딱 깔끔하고 센스 있게",en:"Handles it well, neatly, and with sense — without being told",cat:"trend",tier:"safe",when:"Praising someone (or wishing they were) effortlessly competent — workplaces, group projects, dating wish-lists.",ex:{k:"우리 팀장님 완전 알잘딱깔센이야.",e:"Our team lead just gets it done — no hand-holding needed."},note:"Take the initials: 알(아서) 잘 딱 깔끔하고 센스 있게."},
+{t:"갑분싸",f:"갑자기 분위기 싸해짐",en:"The mood suddenly turns cold",cat:"chat",tier:"safe",when:"Group chats and comments, when something kills the vibe — a fight breaks out or someone says something heavy.",ex:{k:"다들 웃고 있는데 그 말 하고 나서 갑분싸 됐지.",e:"Everyone was laughing, then you said that and the room froze."}},
+{t:"어쩔티비",f:"어쩔 수 없지, 티비",en:"So what? Nothing you can do about it",cat:"trend",tier:"know",when:"Gen-Z banter, almost always joking — a flippant shrug at someone's complaint. Often answered with 안물안궁.",ex:{k:"내일 시험인데 게임 해? / 어쩔티비~",e:"The exam is tomorrow and you're gaming? / What can ya do~"},note:"Sarcastic between close friends; can land as rude with strangers. Understand it before you serve it."},
+{t:"안물안궁",f:"안 물어보고 안 궁금해",en:"I didn't ask and I'm not curious",cat:"chat",tier:"know",when:"The sharp shutdown of unsolicited information — internet comments, group chats.",ex:{k:"나 다이어트로 10kg 뺐어! / 안물안궁",e:"I lost 10 kg dieting! / Didn't ask."},note:"Deliberately rude — know it so it doesn't shock you; don't open with it."},
+{t:"ㅋㅋㅋ",f:"(초성 of 크크크 — the laughing sound)",en:"haha / lol — more ㅋ = harder laughing",cat:"chat",tier:"safe",rom:"keu-keu-keu",when:"Every Korean chat ever. One ㅋ can read as cold; ㅋㅋ is polite; ㅋㅋㅋㅋㅋ is real laughter.",ex:{k:"어제 그거 기억나? ㅋㅋㅋㅋ",e:"Remember yesterday? lololol"},note:"A single ㅋ to a stranger can feel dismissive — when in doubt, use at least two."},
+{t:"ㅠㅠ",f:"(crying eyes drawn as characters)",en:"crying face / aww",cat:"chat",tier:"safe",rom:"yu-yu",when:"Mild tears: touched, sad, or whiny-cute. Stacks freely: ㅠㅠㅠㅠ.",ex:{k:"벌써 출근이야 ㅠㅠ",e:"It's already time for work ㅠㅠ"}},
+{t:"ㄱㅅ",f:"감사",en:"thanks",cat:"chat",tier:"safe",rom:"gi-yeok + siot — initials of gam-sa",when:"Fast chat reply for small favors.",ex:{k:"링크 보냈어 / ㄱㅅ",e:"Sent you the link / thx"}},
+{t:"ㄷㄷ",f:"덜덜 (shivering)",en:"OMG / shook",cat:"chat",tier:"safe",rom:"deol-deol",when:"Reacting to something shocking or creepy.",ex:{k:"그거 진짜 사건이었어 ㄷㄷ",e:"That was a real incident, OMG."}},
+{t:"ㅊㅋ",f:"축하합니다",en:"congrats",cat:"chat",tier:"safe",rom:"chuk-ha initials",when:"Birthdays, exam passes, promotions — usually doubled with an exclamation.",ex:{k:"합격했어! / ㅊㅋㅊㅋ!!",e:"I got in! / Congrats!!"}},
+{t:"오지다",f:"(오지고 지리고 — to the extreme)",en:"insanely (amazing or awful)",cat:"feel",tier:"friends",when:"Intensity amplifier: 오지게 피곤하다 (dead tired), 맛이 오진다 (insanely good).",ex:{k:"어제 오지게 마셨어.",e:"I drank an insane amount yesterday."},note:"Rough-ish roots — fine with friends, skip it with elders."},
+{t:"지리다",f:"(originally 'to ring/scream', now 'to be insane')",en:"it goes hard / it's insane",cat:"feel",tier:"friends",when:"Hyped reactions to food, concerts, skills.",ex:{k:"이 노래 지린다…",e:"This song goes hard…"}},
+{t:"존맛탱",f:"존나 맛있는 것 (+cutesy -탱)",en:"freaking delicious",cat:"cafe",tier:"friends",when:"Food pics and reviews — you'll see 존맛 all over Korean food blogs.",ex:{k:"여기 국밥 존맛탱이니까 꼭 가봐.",e:"The gukbap here is insanely good — you have to go."},note:"존나 is mildly vulgar ('freaking') — with friends only; 존맛 is tamer for reviews."},
+{t:"현타",f:"현실 자각 타임",en:"a reality-check moment",cat:"feel",tier:"safe",when:"That sudden sober clarity — after doom-scrolling at 2am, or checking your bank account after payday.",ex:{k:"새벽 3시까지 유튜브 보다가 현타 왔다.",e:"Watched YouTube till 3am, then had a moment of clarity."}},
+{t:"갓생",f:"갓(god) + 생활(life)",en:"living a 'god-tier' productive life",cat:"trend",tier:"safe",when:"Self-improvement culture: 5am routines, gym, study. 갓생 살자 = 'let's live our best life'.",ex:{k:"올해는 갓생 살아보려고 한다.",e:"This year I'm going to live disciplined and productive."}},
+{t:"소확행",f:"소소하지만 확실한 행복",en:"small but certain happiness",cat:"life",tier:"safe",when:"Cozy little joys: a warm latte, fresh sheets. Used in ads, diaries, Instagram captions.",ex:{k:"퇴근길 맥주가 나의 소확행.",e:"A beer on the way home — my small, certain happiness."}},
+{t:"득템",f:"득(得, to gain) + 템(item)",en:"scored a great item",cat:"life",tier:"safe",when:"Shopping hauls — sales, limited drops, flea markets.",ex:{k:"반값 세일에서 득템했어!",e:"Scored it at half price!"}},
+{t:"득근",f:"득(得) + 근육",en:"gained muscle",cat:"life",tier:"safe",when:"Gym talk, progress updates.",ex:{k:"3개월 만에 좀 득근했다.",e:"Three months in, I've finally gained some muscle."}},
+{t:"썸",f:"from English 'something'",en:"the ambiguous stage between friends and dating",cat:"love",tier:"safe",when:"썸 탄다 = flirting in the maybe-romance zone — the Korean 'talking stage'.",ex:{k:"걔랑은 아직 썸이야.",e:"We're still in the talking stage."}},
+{t:"어장관리",f:"어장(fish pond) + 관리(management)",en:"keeping romantic prospects on the hook, like fish",cat:"love",tier:"know",when:"Someone who enjoys the attention but never commits.",ex:{k:"걔한테 왜 이러냐… 순수 어장관리야.",e:"Why is he like that… he's stringing her along, plain and simple."}},
+{t:"철벽",f:"iron wall",en:"an impenetrable wall against flirting",cat:"love",tier:"safe",when:"Shutting down advances — hard. 철벽 친다 = to block someone cold.",ex:{k:"고백했다가 철벽에 맞았어.",e:"I confessed and hit an iron wall."}},
+{t:"손절",f:"손(ties) + 절단(cutting)",en:"cutting someone off completely",cat:"love",tier:"safe",when:"Ending a friendship or relationship, no contact. Also used jokingly about habits and apps.",ex:{k:"그 일 있고 나서 걔한테 손절했어.",e:"After that incident, I cut him off."}},
+{t:"훈남/훈녀",f:"훈훈한 남자/여자",en:"a warmly good-looking guy / girl",cat:"love",tier:"safe",when:"Not model-hot — charming-handsome. The coworker or classmate everyone quietly likes.",ex:{k:"우리 과에 훈남 생겼다.",e:"A new cutie showed up in my department."}},
+{t:"심쿵",f:"심장 쿵",en:"heart-skipping",cat:"love",tier:"safe",when:"That thump when someone is suddenly sweet or attractive.",ex:{k:"웃는 거 보고 심쿵했어.",e:"I saw him smile and my heart skipped."}},
+{t:"볼매",f:"볼수록 매력 있다",en:"grows on you the more you watch",cat:"love",tier:"safe",when:"People, shows, cities — charm that accumulates.",ex:{k:"이 드라마 볼매야.",e:"This drama really grows on you."}},
+{t:"세젤예/세젤귀",f:"세상에서 제일 예쁜/귀여운",en:"the prettiest / cutest in the world",cat:"chat",tier:"safe",when:"Stanning pets, babies, idols.",ex:{k:"우리 고양이 세젤귀.",e:"My cat is the cutest in the world."}},
+{t:"완내스",f:"완전 내 스타일",en:"totally my style",cat:"chat",tier:"safe",when:"Reacting to fashion, decor, anything aesthetic.",ex:{k:"이 카페 완내스.",e:"This café is so my style."}},
+{t:"쌉가능",f:"쌉(intensifier) + 가능",en:"totally possible / say less",cat:"chat",tier:"friends",when:"An enthusiastic yes to plans.",ex:{k:"8시에 만날까? / 쌉가능",e:"Meet at 8? / Say less."}},
+{t:"각",f:"(from 각을 재다 — measuring an angle)",en:"it's basically a done deal that…",cat:"trend",tier:"safe",when:"Attached to verbs: 맛있겠각 (that's gonna be tasty), 가는 거 각 (we're so going).",ex:{k:"오늘 날씨 맥주 먹는 거 각인데?",e:"Weather's perfect for a beer today, no?"}},
+{t:"실화냐",f:"실제 일화냐",en:"is this real life?!",cat:"chat",tier:"safe",when:"Disbelief at absurd situations — often about your own life.",ex:{k:"월요일에 서버 터졌다고? 실화냐…",e:"The servers died on a Monday? Is this real life…"}},
+{t:"제곧내",f:"제목이 곧 내용",en:"the title says it all",cat:"chat",tier:"safe",when:"Forums and chat titles that need no body text.",ex:{k:"제목: 내일 휴강 / 제곧내",e:"Title: no class tomorrow / that's the whole message."}},
+{t:"답정너",f:"답은 정해져 있는 너",en:"you've already decided the answer",cat:"chat",tier:"safe",when:"When someone asks for advice but only wants validation.",ex:{k:"나 그 사람 만나면 안 될까? / 너는 답정너잖아 ㅋㅋ",e:"Should I date them? / You've already decided, lol."}},
+{t:"웃프다",f:"웃기고 슬프다",en:"funny but sad",cat:"feel",tier:"safe",when:"That laugh-cry feeling about life, work, adulting.",ex:{k:"월급날은 하루인데 월요일은 4일이래. 웃프다.",e:"Payday is one day but Monday lasts four. Funny-sad."}},
+{t:"킹받다",f:"킹(king, intensifier) + 받다",en:"so annoyed / tilted",cat:"feel",tier:"friends",when:"Petty rage at small things: 킹받네…",ex:{k:"아까 지하철에서 킹받아서…",e:"I got so tilted on the subway earlier…"},note:"Playful-crude — friends, not professors."},
+{t:"존버",f:"존나 + 버티기",en:"holding on / never selling, no matter what",cat:"trend",tier:"know",when:"Stocks, crypto, games — refusing to sell or quit. 존버는 곧 승리: 'holding is winning'.",ex:{k:"주식 그냥 존버 중이야.",e:"I'm just holding my stocks and waiting it out."},note:"Contains a vulgar intensifier — common online, avoid in polite company."},
+{t:"대박",f:"(originally a huge windfall)",en:"jackpot / whoa",cat:"ess",tier:"safe",when:"The all-purpose exclamation of amazement — classic but evergreen.",ex:{k:"대박, 여기 뷰 미쳤다!",e:"Whoa, the view here is insane!"}},
+{t:"헐",f:"(exclamation)",en:"no way / huh?!",cat:"ess",tier:"safe",when:"Surprise, mild shock. 헐 대박 is the classic combo.",ex:{k:"헐, 진짜?",e:"No way, really?"}},
+{t:"국룰",f:"국민 룰 (national rule)",en:"the unwritten rule everyone follows",cat:"cult",tier:"safe",when:"Explains invisible social defaults: company dinners, drinking games, who pours the soju.",ex:{k:"첫 회식은 가는 게 국룰이지.",e:"Going to the first team dinner is the national rule."}},
+{t:"혼밥/혼술",f:"혼자 밥 / 혼자 술",en:"solo dining / solo drinking",cat:"cult",tier:"safe",when:"The solo-life vocabulary: 혼행 (solo travel), 혼족 (drinking alone). Completely normal and growing in Korea.",ex:{k:"오늘 혼술하면서 영화 본다.",e:"Tonight: a movie and a drink by myself."}},
+{t:"카공족",f:"카페 + 공부 + 족(tribe)",en:"café study tribe",cat:"school",tier:"safe",when:"Students who colonize cafés for hours. Related: 카공실 (café study rooms you book).",ex:{k:"주말엔 카공족이 되는 중이야.",e:"On weekends I become one of the café-study tribe."}},
+{t:"알바",f:"아르바이트 (from German Arbeit)",en:"part-time job",cat:"school",tier:"safe",when:"Standard student vocabulary: 알바 하다, 알바생. The 편의점 (convenience store) shift is the classic.",ex:{k:"저녁에 알바라서 못 가.",e:"I can't come — I have my part-time job in the evening."}},
+{t:"과사",f:"학과 사무실",en:"department office",cat:"school",tier:"safe",when:"Where forms, professor notices and lost student cards go. 과방 = the department lounge.",ex:{k:"서류는 과사에 제출하세요.",e:"Submit the paperwork at the department office."}},
+{t:"엄친아/엄친딸",f:"엄마 친구 아들/딸",en:"the mom's-friend's-kid who's perfect at everything",cat:"school",tier:"safe",when:"The archetype you're compared to: studies, looks, job, manners.",ex:{k:"걘 완전 엄친아야. 공부도 잘하고.",e:"He's a total mom's-friend's-son — smart, too."}},
+{t:"뇌피셜",f:"뇌(brain) + 피셜(official)",en:"pure speculation straight from someone's brain",cat:"chat",tier:"safe",when:"Marking a claim as personal guesswork — the honesty sticker of internet comments.",ex:{k:"이건 지금 내 뇌피셜인데…",e:"This is just my brain-official theory, but…"}},
+{t:"어그로",f:"(from game 'aggro')",en:"deliberately baiting attention or anger",cat:"chat",tier:"know",when:"Trolling for engagement: 어그로 끌다. Also innocent attention-seeking.",ex:{k:"저 글 100% 어그로야.",e:"That post is 100% bait."}},
+{t:"꿀잼/노잼",f:"꿀(honey) + 재미",en:"hilarious / boring as anything",cat:"feel",tier:"safe",when:"Rating movies, lectures, parties. 노잼 = zero fun.",ex:{k:"그 영화 꿀잼이던? / 어, 노잼이었어.",e:"Wasn't that movie great? / Nah, it was a snooze."}},
+{t:"억텐",f:"억지 텐션",en:"forced enthusiasm",cat:"trend",tier:"safe",when:"Faking hype when tired — the corporate-improv energy of Monday mornings.",ex:{k:"오늘 회의는 억텐 부릴 힘도 없어.",e:"I don't even have the energy to fake enthusiasm today."}},
+{t:"자만추/인만추",f:"자연스러운 만남 추구 / 인터넷 만남 추구",en:"seeking a natural meeting / an online one",cat:"love",tier:"safe",when:"Fixed phrases for dating-app bios — a whole mini-grammar of intention.",ex:{k:"자만추 희망합니다.",e:"Hoping to meet someone naturally."}},
+{t:"꾸안꾸",f:"꾸민 듯 안 꾸민 듯",en:"styled-but-not-styled",cat:"life",tier:"safe",when:"The effortless look — sweats that look intentional. A whole aesthetic genre.",ex:{k:"오늘 꾸안꾸 패션 어때?",e:"How's my effortlessly-undone look today?"}},
+{t:"눈치",f:"(눈 eye + 치 energy)",en:"the art of reading the room",cat:"cult",tier:"safe",when:"Sensing what others feel and expect without words. 눈치가 빠르다 = quick on the uptake; 눈치 없다 = (affectionately) clueless.",ex:{k:"분위기 좀 봐, 눈치 좀 힘",e:"Read the room a little."},note:"This app is named for it — nunchi is exactly the gap between translating Korean and understanding Korea."},
+{t:"정",f:"(deep affection built over time)",en:"attachment and warmth that grows with shared time",cat:"cult",tier:"safe",when:"The bond that accumulates in long relationships — with people, neighborhoods, even a regular restaurant.",ex:{k:"단골집이라 정이 들었어요.",e:"It's my regular spot — I'm attached now."}},
+{t:"애교",f:"(cute charm, performed or natural)",en:"aegyo — the cute display",cat:"cult",tier:"safe",when:"Coy cuteness as social glue: aegyo voices, aegyo gestures. Not just couples — friends and ads do it too.",ex:{k:"애교 부리지 마 ㅋㅋ",e:"Stop being cute at me, lol."}}
+];
+/* ============ SURVIVAL PHRASE DECODES ============ */
+const PHRASES=[
+{ko:"좀 생각해볼게요.",rom:"jom saeng-gak-hae-bol-ge-yo",sit:"daily",lit:"'I'll think a little.'",nat:"Let me think about it.",mean:"On its face this is neutral — 'I'll consider it.' But in Korean conversation it very often works as a soft 'no'. Koreans rarely refuse directly; a vague delay is the polite refusal.",ctx:[{tag:"Genuinely needs time",m:"They really will consider it and answer you later.",lg:"They name a deadline (금요일까지 생각해볼게요 — 'by Friday'), the decision is big (a job, a contract), and their tone is warm and specific."},{tag:"A polite no",m:"They are declining without saying no.",lg:"No timeline, flat tone, said right after a request that costs them time or money — and they change the subject afterward."},{tag:"Getting off the phone",m:"A salesperson or stranger just wants the conversation to end politely.",lg:"It comes from a stranger who is selling something and doesn't ask a single follow-up question."}],ctxHelp:["Did they offer a timeline or a next step?","Do they bring it up again on their own later?","How did the conversation end — warm, or did it cool down?"],culture:"Korean leans indirect: direct refusals can feel harsh, so 생각해볼게요, 어려울 것 같아요 ('that might be difficult') and even silence do the work of 'no'. If you hear it, you may follow up gently ONCE — then take the hint.",enKeys:["i will think about it","let me think about it","think about it","i'll consider it"],replies:{friend:[{ko:"응, 천천히 생각해봐. 급하지 않아.",rom:"eung, cheoncheonhi saeng-gak-hae-bwa. geup-haji ana.",en:"Sure, take your time — no rush."}],prof:[{ko:"네, 괜찮습니다. 금요일까지 여쭤봐도 될까요?",rom:"ne, gwaenchanseumnida. geumyoil-kkaji yeojjeo-bwado doelkkayo?",en:"Of course. May I check back with you by Friday?"}],boss:[{ko:"네, 검토해 주시면 감사하겠습니다. 결정되시면 말씀 부탁드립니다.",rom:"ne, geomtohae jusimyeon gamsahagessseumnida.",en:"Thank you — please let me know once you've decided."}],stranger:[{ko:"네, 알겠습니다. 천천히 생각해 보세요.",rom:"ne, algessseumnida.",en:"Understood — please take your time."}]}},
+{ko:"괜찮아요.",rom:"gwaen-chan-a-yo",sit:"daily",lit:"'It is fine / I am fine.'",nat:"It's okay. / I'm okay. / No thanks.",mean:"The most context-loaded phrase in Korea — it can mean yes, no, or 'stop worrying', depending on tone and what came before it.",ctx:[{tag:"'I'm fine, no need'",m:"Refusing an offer or help: 'No thanks, I'm good.'",lg:"Said while waving a hand, or after 아니에요, in answer to an offer (더 드실래요? — want more?)."},{tag:"'It's okay, really'",m:"Accepting your apology or reassurance: 'No harm done.'",lg:"Said after 미안해요 (sorry), with a warm tone and a smile."},{tag:"'Yes, that works'",m:"Agreeing to a plan: '(Tomorrow) works for me.'",lg:"Answering 내일 괜찮아요? (does tomorrow work?) — here 괜찮아요 literally means yes."}],ctxHelp:["What question came just before it?","A wave of the hand = refusal; a nod = agreement.","If truly unsure, ask once more a different way: 그럼 내일은 어때요? ('How about tomorrow, then?')"],culture:"Because 괜찮아요 can be a soft refusal, politely double-checking (정말 괜찮으세요? — 'really okay?') is normal in Korea. Offer once more, then respect the answer.",enKeys:["are you ok","are you okay","it's okay","it is okay","i'm fine","im fine","no thanks","is it fine"],replies:{friend:[{ko:"진짜 괜찮아? 밥은 먹었어?",rom:"jinjja gwaenchanha? bapeun meogeosseo?",en:"Are you really okay? Have you eaten?"}],prof:[{ko:"네, 괜찮습니다. 신경 써 주셔서 감사합니다.",rom:"ne, gwaenchanseumnida. singyeong sseo jusyeoseo gamsahamnida.",en:"Yes, I'm fine — thank you for asking."}],boss:[{ko:"네, 괜찮습니다. 걱정해 주셔서 감사합니다.",rom:"ne, gwaenchanseumnida.",en:"Yes, I'm fine. Thank you for your concern."}],stranger:[{ko:"아니오, 괜찮습니다. 감사합니다.",rom:"anio, gwaenchanseumnida.",en:"No thanks, I'm good. Thank you."}],lord:[{ko:"네, 괜찮습니다. 수고하세요.",rom:"ne, gwaenchanseumnida. sugohaseyo.",en:"Yes, all good. Have a good one."}]}},
+{ko:"밥 먹었어요?",rom:"bap meo-geoss-eo-yo?",sit:"daily",lit:"'Did you eat rice/food?'",nat:"Have you eaten?",mean:"Most of the time this is not about food — it's a warm 'how are you? / I care about you.' Food is love in Korea.",ctx:[{tag:"Just a greeting",m:"'Hey, how are you?'",lg:"Said in passing, as a phone-call opener, with no follow-up about actually eating."},{tag:"A real question",m:"They may genuinely feed you if you say no.",lg:"It's mealtime, you're near a restaurant or their home, and they linger."}],ctxHelp:["Are they standing near a kitchen or restaurant?","Did they ask at an actual mealtime?"],culture:"Koreans feed people to show care. A 밥 먹자 ('let's eat') invitation is real friendship — and saying 아직요 ('not yet') often ends with you being handed food.",enKeys:["did you eat","have you eaten","did you eat yet","have you had lunch","have you had dinner"],replies:{friend:[{ko:"아직! 같이 먹으러 갈래?",rom:"ajik! gachi meogeureo gallae?",en:"Not yet — want to grab food together?"}],prof:[{ko:"네, 먹었습니다. 감사합니다.",rom:"ne, meogeossseumnida.",en:"Yes, I have — thank you."}],boss:[{ko:"아직 못 먹었습니다. 이따가 먹으러 갈게요.",rom:"ajik mot meogeossseumnida.",en:"Not yet — I'll go eat a bit later."}],stranger:[{ko:"네, 먹었어요.",rom:"ne, meogeosseoyo.",en:"Yes, I've eaten."}],lord:[{ko:"네, 덕분에 잘 먹었습니다.",rom:"ne, deokbune jal meogeossseumnida.",en:"Yes, eaten well — thanks to you."}]}},
+{ko:"다음에 밥 한번 먹어요.",rom:"da-eu-me bap han-beon meo-geo-yo",sit:"daily",lit:"'Next time, let's eat a meal once.'",nat:"Let's grab a meal sometime.",mean:"Often a warm goodbye rather than a plan. Korea's deepest relationships are built over meals, so this line carries warmth even when it's just a way to part nicely.",ctx:[{tag:"A real invitation",m:"They actually want to meet.",lg:"They name a day, a place, or follow up on KakaoTalk: 다음 주 화요일 어때요? ('How about next Tuesday?')"},{tag:"A polite goodbye",m:"It's a warm 'see you around' — no meeting intended yet.",lg:"Said while already leaving, with no date, and no follow-up message."}],ctxHelp:["Did they name a day, place, or message you afterward?","Was it said while already walking away?"],culture:"Dining together is the default way Korean relationships deepen. Don't be hurt if 'sometime' never arrives — and if you mean it, propose a concrete day right there.",enKeys:["let's grab a meal sometime","let's have a meal sometime","lets eat sometime","we should get food sometime","let's eat together sometime"],replies:{friend:[{ko:"좋아! 언제? 나 화요일 돼.",rom:"joa! eonje? na hoyoil dwae.",en:"Love it — when? I'm free Tuesday."}],prof:[{ko:"감사합니다. 기회 되면 꼭 같이 식사해요.",rom:"gamsahamnida.",en:"Thank you — let's definitely eat together sometime."}],stranger:[{ko:"네, 꼭 그렇게 해요.",rom:"ne, kkok geureoke haeyo.",en:"Yes, let's do that."}]}},
+{ko:"조심히 가세요.",rom:"jo-sim-hi ga-se-yo",sit:"daily",lit:"'Go carefully.'",nat:"Get home safe. / Take care.",mean:"A standard parting line — a caring goodbye, not a warning about danger.",culture:"Korean partings are direction-based: 조심히 가세요 to the one leaving, 안녕히 계세요 to the one staying. You'll also hear 들어가세요 ('go inside safely') — still just a warm goodbye.",enKeys:["get home safe","take care","safe travels","have a safe trip","take care getting home"],replies:{friend:[{ko:"응, 너도 조심히 가!",rom:"eung, neodo josimhi ga!",en:"Yep — you get home safe too!"}],prof:[{ko:"네, 교수님도 안녕히 계세요.",rom:"ne, gyosunimdo annyeonghi geseyo.",en:"Thank you — goodbye, professor."}],stranger:[{ko:"네, 감사합니다. 안녕히 가세요.",rom:"ne, gamsahamnida.",en:"Thank you — goodbye!"}]}},
+{ko:"수고하셨습니다.",rom:"su-go-ha-syeoss-seum-ni-da",sit:"work",lit:"'You have toiled.'",nat:"Thanks for your hard work.",mean:"The all-purpose acknowledgment of effort — it greets, thanks, praises and closes conversations all at once. You'll hear it at shift's end, after a shared task, even passing someone fixing a road.",ctx:[{tag:"Encouragement",m:"'Good job / keep it up.'",lg:"수고하세요 to someone still working, 수고하셨습니다 once they're done."},{tag:"Contested nuance",m:"Some older Koreans feel a junior saying it to a senior sounds presumptuous.",lg:"Up the hierarchy, safer lines: 먼저 가겠습니다 ('I'll head out first') or 내일 뵙겠습니다 ('see you tomorrow')."}],ctxHelp:["Who is senior — them or you?","Is the work finished (→ 하셨습니다) or ongoing (→ 하세요)?"],culture:"Linguists debate the 'toil' root, but daily life runs on this phrase — to juniors and peers it's the warm default at every parting.",enKeys:["thanks for your hard work","good job today","hard work","thank you for your hard work"],replies:{friend:[{ko:"수고했어~ 푹 쉬어!",rom:"sugohaesseo~ puk swieo!",en:"Good work — rest up!"}],prof:[{ko:"감사합니다. 교수님도 수고하세요.",rom:"gamsahamnida.",en:"Thank you — good work to you too."}],boss:[{ko:"감사합니다. 먼저 가보겠습니다.",rom:"gamsahamnida. meonjeo gabogessseumnida.",en:"Thank you — I'll head out first."}],stranger:[{ko:"수고하세요.",rom:"sugohaseyo.",en:"Take care / keep it up."}]}},
+{ko:"이거 검토해서 회신 부탁드립니다.",rom:"i-geo geom-to-hae-seo hoe-sin bu-tak-deu-rim-ni-da",sit:"work",lit:"'Reviewing this, I request a reply.'",nat:"Please review and get back to me.",mean:"Business-email for 'I need your answer.' 검토 = review, 회신 = reply. Between the lines it usually means: today, if possible.",culture:"Korean business email is built from set phrases — 부탁드립니다 (I humbly request), 확인 (check), 공유 (share), 검토 (review). Learn ten of them and 80% of any work email decodes.",enKeys:["please review and reply","review and get back","please check and reply","please review and get back to me"],replies:{prof:[{ko:"네, 검토 후 내일까지 회신드리겠습니다.",rom:"ne, geomto hu naeil-kkaji hoeshindeurigessseumnida.",en:"I'll review it and reply by tomorrow."}],boss:[{ko:"네, 오늘 중으로 검토해서 회신드리겠습니다.",rom:"ne, oneul jung-euro.",en:"Yes — I'll review and reply today."}]}},
+{ko:"내일 회식 있어요.",rom:"na-eil hoe-sik iss-eo-yo",sit:"work",lit:"'Tomorrow there is a company meal.'",nat:"We have a team dinner tomorrow.",mean:"회식 = the after-work team dinner, usually with drinks. Attendance is warm-traditional: one polite refusal is fine, a habit of refusals gets noticed.",culture:"If you don't drink: 저는 술은 조금 못 마셔요 ('I can't drink much') — order food and stay; showing up matters more than drinking. The youngest staff usually pour and grill, but foreigners get a friendly pass.",enKeys:["team dinner","company dinner","office dinner","we have a dinner","hoesik"],replies:{boss:[{ko:"네, 알겠습니다. 늦지 않게 가겠습니다.",rom:"ne, algessseumnida.",en:"Got it — I'll be there on time."}],friend:[{ko:"또?! ㅋㅋ 알겠어, 가고 말고.",rom:"tto?! kkk algesseo.",en:"Again?! lol OK, I'll be there."}]}},
+{ko:"여기가 좀 아파요.",rom:"yeo-gi-ga jom a-pa-yo",sit:"hospital",mode:"next",lit:"'Here, it hurts a bit.'",nat:"It hurts around here.",mean:"Pointing at the spot + 아파요 is 90% of a clinic visit. Doctors will grade it: 10점 만점에 몇 점이에요? ('Out of 10, how many points?')",culture:"Bring your ARC (외국인등록증) and insurance card. Small neighborhood clinics (동네 병원) are walk-in; big general hospitals (종합병원) want appointments and sometimes a referral.",enKeys:["it hurts","i have pain","pain here","it hurts here","i feel pain"],replies:{service:[{ko:"어디부터 어떻게 아프셨어요?",rom:"eodibuteo eotteoke apeusyeosseoyo?",en:"Where and how did the pain start?"},{ko:"10점 만점에 몇 점 정도 아파요?",rom:"simjeom manjeome myeot jeom jeongdo apayo?",en:"On a scale of 10, how bad is it?"}],stranger:[{ko:"진통제 처방해 드릴 수 있어요.",rom:"jantongje cheobanghae deuril su isseoyo.",en:"I can prescribe a painkiller."}]}},
+{ko:"언제부터 그랬어요?",rom:"eon-je-bu-teo geu-raess-eo-yo?",sit:"hospital",mode:"next",lit:"'Since when has it been like that?'",nat:"When did the symptoms start?",mean:"The doctor's first question. Answer with a duration: 어제부터요 ('since yesterday'), 3일 전부터요 ('since 3 days ago').",enKeys:["when did it start","since when","when did the symptoms start","how long have you had it"],replies:{stranger:[{ko:"어제부터요.",rom:"eojebuteoyo.",en:"Since yesterday."},{ko:"3일 전부터요.",rom:"samil jeonbuteoyo.",en:"Since three days ago."}],service:[{ko:"지난주부터 계속 그래요.",rom:"jinanju-buto gyesok geuraeyo.",en:"It's been like this since last week."}]}},
+{ko:"처방전 드릴게요. 약국은 1층에 있어요.",rom:"cheo-bang-jeon deu-ril-ge-yo. yak-gug-eun il-cheung-e iss-eo-yo",sit:"hospital",mode:"next",lit:"'I'll give you a prescription. The pharmacy is on the 1st floor.'",nat:"I'll prescribe something — the pharmacy is on the first floor.",mean:"The clinic doesn't hand you medicine. You take the printed 처방전 to a separate 약국 (pharmacy) — usually right next door, marked with a glowing cross sign.",culture:"Korea splits prescribing and dispensing by law. With national insurance, most medicine is cheap, and the pharmacist counsels you briefly at the counter. Pharmacies open late; find the cross sign.",enKeys:["prescription","pharmacy","i will prescribe"],replies:{service:[{ko:"감사합니다. 바로 갈게요.",rom:"gamsahamnida. baro galgeyo.",en:"Thank you — I'll go right away."}]}},
+{ko:"주민등록번호 어떻게 되세요?",rom:"ju-min-deung-nok beon-ho eo-tteok-ke doe-se-yo?",sit:"bank",mode:"next",lit:"'How does your resident registration number go?'",nat:"What's your ID number?",mean:"Clerks say this on autopilot — but 주민등록번호 is for Korean CITIZENS. As a foreigner you don't have one. Give your 외국인등록번호 (the number on your ARC).",culture:"Korean forms assume citizenship. The magic sentence for every counter in Korea: 저는 외국인이에요 ('I'm a foreigner') — everything re-routes smoothly after it.",enKeys:["resident registration number","id number","whats your id","jumin"],replies:{service:[{ko:"죄송한데, 저는 외국인이라 주민등록번호가 없어요. 외국인등록번호로 하면 될까요?",rom:"joesonghande, jeoneun oegugin-ira jumindeungnok-beonho-ga eopseoyo. oegugin-deungnok-beonho-ro hamyeon doelkkayo?",en:"Sorry — I'm a foreigner, so I don't have a resident number. Can I use my alien registration number?"}]}},
+{ko:"여권 있으세요?",rom:"yeo-gwon iss-eu-se-yo?",sit:"bank",mode:"next",lit:"'Do you have a passport?'",nat:"Do you have your passport with you?",mean:"The universal ID check at banks and counters — 여권 (passport) works almost everywhere, alongside your ARC.",enKeys:["do you have your passport","passport please","passport"],replies:{service:[{ko:"네, 여기 있어요.",rom:"ne, yeogi isseoyo.",en:"Yes, here it is."}],stranger:[{ko:"네, 여기요. 외국인등록증도 있어요.",rom:"ne, yeogiyo.",en:"Here — and I have my ARC too."}]}},
+{ko:"계좌 만들고 싶은데요.",rom:"gye-jwa man-deul-go sip-eun-de-yo",sit:"bank",mode:"next",lit:"'I want to make an account.'",nat:"I'd like to open an account.",mean:"계좌 = account. Take a 번호표 (number ticket) first, then wait for your number on the screen.",culture:"Bring your ARC; some banks also ask for proof of address or employment, and policies differ by branch — if one says no, another often says yes. 통장 is the little bankbook you may receive.",enKeys:["open an account","i want to open a bank account","make an account","open a bank account"],replies:{stranger:[{ko:"네, 이쪽에서 번호표 뽑아 주세요.",rom:"ne, ijjok-eseo beonho-pyo bbopa juseyo.",en:"Sure — take a number ticket over here."}],service:[{ko:"외국인등록증이랑 여권 가지고 오셨나요?",rom:"oegugin-deungnok-jeung-irang yeogwon gajigo osyeotnayo?",en:"Did you bring your alien registration card and passport?"}]}},
+{ko:"외국인등록증 재발급 받으러 왔어요.",rom:"oe-gug-in-deung-nok-jeung jae-bal-gup pad-eu-reo wass-eo-yo",sit:"immig",mode:"next",lit:"'I came to receive a re-issuance of my alien registration card.'",nat:"I'm here to reissue my alien registration card (ARC).",mean:"The ARC is your ID in Korea — renew it at the immigration office. Never overstay: renewal windows are strict and fines are real.",culture:"Immigration runs on 하이코리아 (hikorea.go.kr) for booking and the 1345 multilingual hotline for everything else. Bring originals + copies, and keep every 접수증 (receipt).",enKeys:["alien registration card","reissue my card","renew my arc","foreigner card","foreign registration"],replies:{service:[{ko:"접수증 나오면 자리에서 잠시만 기다려 주세요.",rom:"jeipsu-jeung naomyeon jarieseo jamsiman gidaryeo juseyo.",en:"Once your receipt prints, please wait a moment."}],stranger:[{ko:"먼저 번호표 뽑아 주세요.",rom:"meonjeo beonho-pyo bbopa juseyo.",en:"Take a number ticket first."}]}},
+{ko:"여기 서명해 주세요.",rom:"yeo-gi seo-myeong-hae ju-se-yo",sit:"immig",mode:"next",lit:"'Please sign here.'",nat:"Please sign here.",mean:"서명 = signature (you'll also hear 싸인, from English 'sign'). You'll hear it at deliveries, contracts, receipts — everywhere.",enKeys:["sign here","please sign","signature"],replies:{stranger:[{ko:"네, 알겠습니다.",rom:"ne, algessseumnida.",en:"Sure, of course."}]}},
+{ko:"보증금 언제까지 입금하면 돼요?",rom:"bo-jeung-geum eon-je-kkaji ip-geum-ha-myeon dwae-yo?",sit:"house",mode:"next",lit:"'By when is it fine to deposit the guarantee money?'",nat:"By when should I pay the deposit?",mean:"보증금 = the big key deposit at the heart of Korea's 전세/월세 rent system. 입금 = sending money by bank transfer.",culture:"Deposits run huge in Korea — 전세 means tens of thousands of dollars held as deposit. Protect yours: file 전입신고 (move-in report) + 확정일자 (date-stamped contract) right after signing.",enKeys:["deposit","when should i pay the deposit","key deposit"],replies:{lord:[{ko:"이번 달 말일까지만 부탁드려요.",rom:"ibeon dal mar-il-kkajiman butakdeuryeoyo.",en:"Just by the end of this month, please."}],stranger:[{ko:"계약서에 적힌 날짜까지 보내주시면 돼요.",rom:"gyeakseo-e jeokin naljjak-kkaji bonaejusimyeon dwaeyo.",en:"Just send it by the date written in the contract."}]}},
+{ko:"수리 기사 보내드릴게요.",rom:"su-ri gi-sa bonae-deu-ril-ge-yo",sit:"house",mode:"next",lit:"'I'll send a repair technician for you.'",nat:"We'll send a repair technician over.",mean:"보일러 (boiler) is the phrase to know: Korea heats FLOORS (온돌), and the boiler also makes hot water — a winter '고장 났어요' (it's broken) is genuinely urgent.",enKeys:["send a repair","repair technician","it's broken","boiler broken"],replies:{lord:[{ko:"네, 감사합니다. 혹시 오늘 가능할까요?",rom:"ne, gamsahamnida. hoksi oneul ganeunghalkkayo?",en:"Thank you — could it be today, by any chance?"}]}},
+{ko:"전입신고 하셨어요?",rom:"jeo-nip-sin-go ha-syeoss-eo-yo?",sit:"house",mode:"next",lit:"'Did you do your move-in report?'",nat:"Have you registered your new address?",mean:"Registering your address at the district office — it's what legally protects your deposit and signs you up for local services.",culture:"Do it within weeks of moving (the standard window is 2 weeks) at the 동주민센터 or district office, with your ARC and contract. Landlords and agents usually remind you — take it seriously.",enKeys:["move-in report","did you register your address","address registration","resident registration"],replies:{lord:[{ko:"아직이에요. 어디서 하면 돼요?",rom:"ajig-ieoyo. eodiseo hamyeon dwaeyo?",en:"Not yet — where do I do it?"}],service:[{ko:"아직요. 필요한 서류가 뭐예요?",rom:"ajigyo. piryohan seoryu-ga mwoyeyo?",en:"Not yet — what documents do I need?"}]}},
+{ko:"주문하시겠어요?",rom:"ju-mun-ha-si-gess-eo-yo?",sit:"rest",mode:"next",lit:"'Will you be ordering?'",nat:"Are you ready to order?",mean:"The opener at every restaurant. If you need more time: 조금 이따가 주문할게요 ('I'll order in a bit').",culture:"Call staff with a loud 저기요! ('over there!') — normal and polite here, not rude. Many places use a table call-button instead.",enKeys:["are you ready to order","ready to order","may i take your order","order"],replies:{friend:[{ko:"저기요~ 주문할게요!",rom:"jeogiyo~ jumunhalgeyo!",en:"Excuse me~ I'd like to order!"}],service:[{ko:"주문할게요.",rom:"jumunhalgeyo.",en:"I'd like to order."}]}},
+{ko:"포장이세요? 드셔 가세요?",rom:"po-jang-i-se-yo? deu-syeo ga-se-yo?",sit:"rest",mode:"next",lit:"'Is it takeout? Will you eat and go?'",nat:"Takeout, or eating here?",mean:"포장 = takeout, 매장 = here. 드시다 is the honorific of 먹다 (eat) — you'll hear 드세요 and 드릴게요 constantly; they signal respect, not extra meaning.",enKeys:["takeout or","for here or to go","take away or eat here","to stay or to go"],replies:{friend:[{ko:"포장이요!",rom:"pojang-iyo!",en:"Takeout, please!"}],service:[{ko:"여기서 먹을게요.",rom:"yeogiseo meogeulgeyo.",en:"I'll eat here."}]}},
+{ko:"매운 거 괜찮으세요?",rom:"ma-eun-geo gwaen-chan-eu-se-yo?",sit:"rest",mode:"next",lit:"'Is spicy food okay for you?'",nat:"Can you handle spicy food?",mean:"Both courtesy and warning — Korean 'mild' can still bite.",ctx:[{tag:"Kind warning",m:"They're checking before you commit to a fire level.",lg:"At a restaurant, while someone orders for the table."},{tag:"A friendly test",m:"Playful sizing-up — spice tolerance is social currency.",lg:"Among new friends, with a grin."}],ctxHelp:["Is there a menu in front of you (real question) or a grin (friendly test)?"],culture:"Ask for 순한 것 (mild) or 덜 맵게 (less spicy). Milk and 떡 (rice cakes) cool the burn better than water.",enKeys:["is spicy okay","can you handle spicy","spicy food ok","is it too spicy"],replies:{friend:[{ko:"조금 괜찮아요. 그 정도로 해주세요.",rom:"jogeum gwaenchanaoyo.",en:"A little spice is fine — that level, please."}],service:[{ko:"순한 걸로 주세요.",rom:"sunhan geollo juseyo.",en:"Please make it mild."}]}},
+{ko:"사이즈 업 하시겠어요?",rom:"sa-i-jeu eop ha-si-gess-eo-yo?",sit:"rest",mode:"next",lit:"'Will you size-up?'",nat:"Would you like to make it large?",mean:"The upsell — 'large for a bit more?' 사이즈 업 is pure Konglish, understood instantly.",enKeys:["would you like to make it large","upsize","large size","size up"],replies:{service:[{ko:"네, 업 해 주세요.",rom:"ne, eop hae juseyo.",en:"Yes, upsize it please."}],stranger:[{ko:"아니요, 기본으로 주세요.",rom:"anio, gibon-euro juseyo.",en:"No, regular is fine."}]}},
+{ko:"환불하고 싶은데요.",rom:"hwan-bul-ha-go sip-eun-de-yo",sit:"shop",mode:"next",lit:"'I want to refund.'",nat:"I'd like a refund.",mean:"환불 = refund, 교환 = exchange. You'll usually be asked for the 영수증 (receipt) first.",culture:"Big chains are generous with receipt + tags; department stores are strict but reliable; street stalls are neither. Keep the tags on until you're sure.",enKeys:["i want a refund","id like a refund","refund","return this"],replies:{service:[{ko:"영수증 있으세요?",rom:"yeongsu-jeung isseuseyo?",en:"Do you have the receipt?"}],stranger:[{ko:"태그 안 떼셨죠? 확인해 드릴게요.",rom:"taegeu an ttesyeotjyo? hwaginhae deurilgeyo.",en:"You didn't remove the tags, right? Let me check for you."}]}},
+{ko:"좀 깎아주실 수 있어요?",rom:"jom kkak-ka-ju-sil su iss-eo-yo?",sit:"shop",mode:"next",lit:"'Could you shave it a little?'",nat:"Could you give me a better price?",mean:"깎다 = to shave (the price). Standard move at traditional markets (재래시장) — expect a smile, or a freebie instead of a discount.",culture:"Bargaining works at markets and market stalls — NOT at department stores, convenience stores or franchises. Buying more than one item improves your odds.",enKeys:["can you give me a better price","discount","bargain","lower the price","cheaper"],replies:{friend:[{ko:"어머, 사장님 깎아주세요~!",rom:"eomeo, sajangnim kkakka-juseyo~!",en:"Sir, a discount please~!"}],stranger:[{ko:"조금만 더 가져가면 깎아줄게요.",rom:"joguman deo gajagamyeon kkakka-julgeyo.",en:"Take a little more and I'll shave the price."}]}},
+{ko:"포인트 적립하시나요?",rom:"po-in-teu jeong-nip-ha-si-na-yo?",sit:"shop",mode:"next",lit:"'Are you stacking points?'",nat:"Shall I add loyalty points?",mean:"Every chain in Korea runs a points program (적립) — cashiers ask automatically. Your phone number is usually the card.",culture:"Korea is a points superpower — coffee, groceries, transport. Registering your number typically pays off within a month.",enKeys:["loyalty points","do you have points","shall i add points","stamping points"],replies:{service:[{ko:"네, 이 번호로 해 주세요.",rom:"ne, i beonho-ro hae juseyo.",en:"Yes, use this number please."}],stranger:[{ko:"처음이에요. 가입하고 싶어요.",rom:"cheoeum-ieoyo. gaeip-hago sipeoyo.",en:"It's my first time — I'd like to sign up."}]}},
+{ko:"교통카드 충전해 주세요.",rom:"gyo-tong-ka-deu chung-jeon-hae ju-se-yo",sit:"trans",mode:"next",lit:"'Please charge my transit card.'",nat:"Please top up my transit card.",mean:"티머니/캐시비 cards work on every subway and bus. 충전 = top up — at convenience stores or station machines.",enKeys:["top up my transit card","charge my card","transit card recharge","t-money"],replies:{service:[{ko:"얼마로 충전해 드릴까요?",rom:"eolma-ro chungjeonhae deurilkkayo?",en:"For how much would you like it?"}]}},
+{ko:"뒷문으로 내세요.",rom:"dwit-mun-eu-ro nae-se-yo",sit:"trans",mode:"next",lit:"'Exit through the back door.'",nat:"Please exit through the rear door.",mean:"City buses board at the front and exit at the rear — tap your card both times. The driver isn't scolding you; it's the system.",culture:"Tap ON boarding and OFF at the rear exit — transfers within ~30 minutes are discounted, and missing the rear tap can charge a max fare.",enKeys:["exit through the rear door","back door","exit the back"],replies:{stranger:[{ko:"네, 알겠습니다.",rom:"ne, algessseumnida.",en:"OK, understood."}]}},
+{ko:"막차가 몇 시예요?",rom:"mak-cha-ga myeot si-ye-yo?",sit:"trans",mode:"next",lit:"'What time is the last car?'",nat:"When is the last train / bus?",mean:"막차 = the final service of the night. Seoul subways end around midnight to 1am depending on the line — miss it and it's taxi time.",culture:"Missing the 막차 is a national rite of passage; Koreans plan whole evenings around it. Ask early, not at 11:58pm.",enKeys:["last train","last bus","what time is the last","when does it close"],replies:{friend:[{ko:"1시 10분이야. 서둘러!",rom:"han si sip-bun-iya. seodulleo!",en:"1:10 — hurry!"}],service:[{ko:"곧 마지막 차가 들어옵니다.",rom:"got majimak chaga deureopnida.",en:"The last train arrives shortly."}]}},
+{ko:"시험 범위가 어디까지예요?",rom:"si-heom beom-wi-ga eo-di-kka-ji-ye-yo?",sit:"uni",mode:"next",lit:"'Until where is the exam's range?'",nat:"What does the exam cover up to?",mean:"범위 = scope. University classes move by week numbers: 12주차까지 ('through week 12').",enKeys:["what does the exam cover","exam scope","what's on the exam","exam range"],replies:{prof:[{ko:"다음 주 목요일 강의자료 5장까지 나갑니다.",rom:"daeum ju mogyoil gang-ui-jaryo ojang-kkaji nagamnida.",en:"It runs through slide 5 of next Thursday's lecture materials."}],stranger:[{ko:"교수님이 11주차까지라고 하셨어요.",rom:"gyosunim-i sib-il-ju-cha-kkaji-rago hasyeosseoyo.",en:"The professor said through week 11."}]}},
+{ko:"교수님, 이번 과제 연장해 주실 수 있나요?",rom:"gyo-su-nim, i-beon gwa-je yeon-jang-hae ju-sil su it-na-yo?",sit:"uni",mode:"next",lit:"'Professor, could you extend this assignment for me?'",nat:"Professor, could I get an extension on the assignment?",mean:"교수님 = professor + honorific 님 (never 선생님 at university). Name the reason and a realistic new date in the same message.",culture:"Politeness markers carry weight: 죄송한데/실례만 soften any request. Visiting office hours (면담) beats emailing — showing up is respect.",enKeys:["extension","extend the deadline","can i have an extension","assignment extension"],replies:{prof:[{ko:"사정을 말씀해 주세요. 검토해 보겠습니다.",rom:"sajeong-eul malsseumhae juseyo. geomtohae bogessseumnida.",en:"Tell me the circumstances — I'll consider it."}],friend:[{ko:"걔네 조도 연장 신청했대.",rom:"gyeane jogodo yeonjang sincheonhaettae.",en:"Their group also asked for an extension, apparently."}]}},
+{ko:"아아 두 잔 주세요.",rom:"a-a du jan ju-se-yo",sit:"rest",mode:"next",lit:"'Two glasses of iced Americano, please.'",nat:"Two iced Americanos, please.",mean:"잔 is the counter word for cups. Two of X: X 두 잔 — Korea counts everything with counters: 병 (bottles), 개 (things), 명 (people).",culture:"주세요 is your all-purpose 'please' — attach it to anything you want: 이거 주세요, 포장 주세요, 계산 주세요.",enKeys:["two iced americanos","iced americano please","two americanos"],replies:{service:[{ko:"사이즈는 어떻게 해 드릴까요?",rom:"saijeuneun eotteoke hae deurilkkayo?",en:"What size would you like?"}],stranger:[{ko:"포인트 적립하시나요?",rom:"poin-teu jeongnip-hasinayo?",en:"Any loyalty points?"}]}},
+{ko:"잘 부탁드립니다.",rom:"jal bu-tak-deu-rim-ni-da",sit:"daily",lit:"'I ask that you treat me well.'",nat:"I look forward to being together. / Please take care of me.",mean:"The untranslatable self-introduction closer — said after 소개 (introductions), in first emails, at first dinners. It hands the relationship over warmly.",culture:"There's no English equivalent because the expectation is different: in Korea you're joining a web of care, not just meeting a person. Say it with a slight bow and you've won the room.",enKeys:["nice to meet you","please take care of me","i look forward to working with you"],replies:{boss:[{ko:"천천히 배우면 됩니다.",rom:"cheoncheonhi baeumyeon doemnida.",en:"You'll learn at your own pace — no rush."}],friend:[{ko:"우리 잘 지내보자!",rom:"uri jal jinaeboja!",en:"Let's get along great!"}]}}
+];
+/* quick-try suggestions for the empty state */
+const TRY=["좀 생각해볼게요","괜찮아요","밥 먹었어요?","수고하셨습니다","아아 두 잔 주세요","내돈내산이 뭐예요?"];
+/* ============ SITUATION PACKS ============ */
+const SIT_META=[
+{id:"uni",icon:"🎓",en:"University",ko:"대학",sub:"Deadlines, professors, group work",intro:"Korean campuses run on hierarchy and politeness — and on fast KakaoTalk group chats. Address professors by title, 교수님 (never 선생님 at university), keep emails short and formal, and remember: silence after a request is processing time, not agreement.",lines:[
+{k:"교수님, 안녕하세요.",r:"gyosunim, annyeonghaseyo",e:"Hello, professor.",n:"교수님 = professor + honorific 님. The default for all faculty."},
+{k:"질문 있어요!",r:"jilmun isseoyo!",e:"I have a question!",n:"Perfectly fine to raise a hand with."},
+{k:"이번 과제 마감이 언제인가요?",r:"ibeon gwaje magami eonje-ingayo?",e:"When is this assignment due?"},
+{k:"조원끼리 모여서 얘기해요.",r:"jowon-kkaki moyeoseo yaegihaeyo",e:"Let's meet as a group.",n:"조 = your assigned group. 조별과제 (group assignments) are a whole culture with their own folklore."},
+{k:"이 자료 어디서 볼 수 있어요?",r:"i jaryo eodiseo bol su isseoyo?",e:"Where can I find this material?"},
+{k:"감사합니다. 안녕히 계세요.",r:"gamsahamnida. annyeonghi geseyo",e:"Thank you. Goodbye."}],hear:[
+{k:"수강신청 정정 기간 지났어요.",m:"The course-change window has closed."},
+{k:"과제는 LMS에 올려 주세요.",m:"Upload assignments to the LMS portal."},
+{k:"다음 주까지 조편성 해 주세요.",m:"Form your groups by next week."}]},
+{id:"hospital",icon:"🏥",en:"Hospital",ko:"병원",sub:"Symptoms, prescriptions, pharmacies",intro:"Small neighborhood clinics (동네 병원) are walk-in; big general hospitals (종합병원) want appointments and sometimes a referral. Bring your ARC — with national insurance, visits are affordable. Prescriptions go to a separate pharmacy (약국) with a glowing cross sign.",lines:[
+{k:"진료 예약하고 싶어요.",r:"jinyeong yeyak-hago sipeoyo",e:"I'd like to make an appointment."},
+{k:"여기가 좀 아파요.",r:"yeogiga jom apayo",e:"It hurts around here.",n:"Point at the spot — it does most of the work."},
+{k:"열이 나요. 기침도 나요.",r:"yeori nayo. gichimdo nayo",e:"I have a fever. A cough, too."},
+{k:"약 알레르기가 있어요.",r:"yak allerugiga isseoyo",e:"I'm allergic to some medicine."},
+{k:"영어 하시는 분 계세요?",r:"yeongeo hasineun bun gyeseyo?",e:"Is there anyone who speaks English?"},
+{k:"건강보험 되나요?",r:"geongangboheom doenayo?",e:"Does national health insurance apply?"}],hear:[
+{k:"어디가 불편해서 오셨어요?",m:"What brings you in? (lit: what is uncomfortable?)"},
+{k:"언제부터 그랬어요?",m:"When did the symptoms start?"},
+{k:"하루 세 번, 식후 30분에 드세요.",m:"Take it three times a day, 30 minutes after meals."}]},
+{id:"bank",icon:"🏦",en:"Bank",ko:"은행",sub:"Accounts, transfers, ID numbers",intro:"You can open an account with your ARC (외국인등록증), often with a passport too. Clerks move fast and may ask for a 주민등록번호 out of habit — say you're a foreigner and offer your ARC number. Take a 번호표 (number ticket) at the door first.",lines:[
+{k:"계좌 개설하고 싶어요.",r:"gyejwa gaeseol-hago sipeoyo",e:"I'd like to open an account."},
+{k:"여권이랑 외국인등록증이에요.",r:"yeogwon-irang oegugin-deungnok-jeung-ieyo",e:"Here are my passport and alien registration card."},
+{k:"번호표 뽑아도 될까요?",r:"beonho-pyo bbopado doelkkayo?",e:"May I take a number ticket?"},
+{k:"이체하려고 왔어요.",r:"ichehaeryeo wosseoyo",e:"I'm here to make a transfer."},
+{k:"수수료가 얼마예요?",r:"susuryoga eolmayeyo?",e:"What's the fee?"},
+{k:"인터넷뱅킹 설정해 주세요.",r:"inteonetbaengking seoljeonghae juseyo",e:"Please set up online banking for me."}],hear:[
+{k:"주민등록번호 어떻게 되세요?",m:"Your ID number? — give your ARC number; you don't have a citizen number."},
+{k:"전화번호 남겨 주세요.",m:"Please leave your phone number."},
+{k:"앱으로도 이체 가능해요.",m:"You can also transfer in the app."}]},
+{id:"immig",icon:"🛂",en:"Immigration",ko:"출입국",sub:"Visas, ARC, paperwork",intro:"Visas, ARC issuance and renewal — everything runs through 하이코리아 (hikorea.go.kr) for booking and the 1345 multilingual hotline for questions. Book a visit slot, bring originals plus copies, and keep every 접수증 (receipt) they hand you.",lines:[
+{k:"외국인등록증 발급 받으러 왔어요.",r:"oegugin-deungnok-jeung balgeup bad-eureo wosseoyo",e:"I'm here to get my alien registration card."},
+{k:"비자 연장 신청하고 싶어요.",r:"bija yeonjang sincheong-hago sipeoyo",e:"I'd like to apply to extend my visa."},
+{k:"이 서류는 어디서 받을 수 있어요?",r:"i seoryuneun eodiseo badeul su isseoyo?",e:"Where can I get this document?"},
+{k:"예약 확인했습니다.",r:"yeyak hwaginhaetseumnida",e:"I've confirmed my reservation."},
+{k:"사진은 여기 있어요.",r:"sajineun yeogi isseoyo",e:"Here's the photo."},
+{k:"처리 기간이 얼마나 돼요?",r:"cheori gigan-i eolmana dwaeyo?",e:"How long does processing take?"}],hear:[
+{k:"여기 서명해 주세요.",m:"Please sign here."},
+{k:"수수료 내고 접수증 받아 가세요.",m:"Pay the fee and take the receipt."},
+{k:"하이코리아에서 미리 예약하세요.",m:"Book in advance on Hi Korea."}]},
+{id:"house",icon:"🏠",en:"Housing",ko:"집",sub:"Deposits, landlords, repairs",intro:"Rent in Korea = 보증금 (key deposit) + 월세 (monthly rent), signed through licensed agents (공인중개사). After signing, file your 전입신고 (move-in report) and 확정일자 (date-stamped contract) — those two protect your deposit. Buildings charge monthly 관리비 (maintenance).",lines:[
+{k:"방 보러 왔어요.",r:"bang boreo wosseoyo",e:"I'm here to see the room."},
+{k:"월세가 얼마예요? 관리비는요?",r:"wolsega eolmayeyo? gwanlibineunyo?",e:"What's the rent? And the maintenance fee?"},
+{k:"보증금 얼마나 돼요?",r:"bojeung-geum eolmana dwaeyo?",e:"How much is the deposit?"},
+{k:"계약서를 다시 읽어봐도 될까요?",r:"gyeakseo-reul dasi igeo-bwado doelkkayo?",e:"May I re-read the contract?"},
+{k:"보일러가 고장 난 것 같아요.",r:"boilleo-ga gojang nan geot gatayo",e:"I think the boiler is broken.",n:"In winter this is urgent — floors AND hot water run on it."},
+{k:"수리 요청하고 싶어요.",r:"suri yocheong-hago sipeoyo",e:"I'd like to request a repair."}],hear:[
+{k:"이달 말까지 입금해 주세요.",m:"Please pay by the end of the month."},
+{k:"수리 기사 보내드릴게요.",m:"We'll send a repair technician."},
+{k:"집주인께 연락드릴게요.",m:"We'll contact the landlord."}]},
+{id:"rest",icon:"🍜",en:"Restaurant",ko:"식당",sub:"Ordering, spice, paying",intro:"Korea eats together, fast and loud. Call staff with 저기요! — normal and polite here. Water is self-serve, side dishes (반찬) are free refills, the bill is paid at the front register, and tipping doesn't exist.",lines:[
+{k:"주문할게요.",r:"jumunhalgeyo",e:"I'd like to order."},
+{k:"이거 하나 주세요.",r:"igeo hana juseyo",e:"One of this, please.",n:"Pointing at the menu photo is completely acceptable."},
+{k:"안 매운 거 있어요?",r:"an maeun-geo isseoyo?",e:"Do you have anything not spicy?"},
+{k:"물 좀 주세요.",r:"mul jom juseyo",e:"Some water, please."},
+{k:"포장해 주세요.",r:"pojanghae juseyo",e:"To go, please."},
+{k:"계산할게요.",r:"gyesanhalgeyo",e:"I'll pay now."},
+{k:"맛있었어요!",r:"masisseosseoyo!",e:"It was delicious!",n:"The exit line restaurant owners love."}],hear:[
+{k:"주문하시겠어요?",m:"Are you ready to order?"},
+{k:"포장이세요? 드셔 가세요?",m:"Takeout or eating in?"},
+{k:"매운 거 괜찮으세요?",m:"Is spicy food OK for you?"}]},
+{id:"shop",icon:"🛍️",en:"Shopping",ko:"쇼핑",sub:"Sizes, refunds, bargaining",intro:"Department stores = fixed prices and generous service. Traditional markets (재래시장) = bargaining welcome. Almost everything is refundable with receipt + tags; keep both until you're sure.",lines:[
+{k:"이거 있어요?",r:"igeo isseoyo?",e:"Do you have this?"},
+{k:"입어 봐도 돼요?",r:"ibeo bwado dwaeyo?",e:"Can I try it on?"},
+{k:"다른 색깔 있어요?",r:"dareun saekkkal isseoyo?",e:"Do you have another color?"},
+{k:"얼마예요?",r:"eolmayeyo?",e:"How much is it?"},
+{k:"좀 깎아주실 수 있어요?",r:"jom kkakka-jusil su isseoyo?",e:"Could you shave the price a bit?",n:"Markets only — never at franchises or department stores."},
+{k:"환불하고 싶은데요.",r:"hwanbul-hago sipeundeyo",e:"I'd like a refund."}],hear:[
+{k:"포인트 적립하시나요?",m:"Adding loyalty points?"},
+{k:"사이즈 어떻게 가세요?",m:"What's your size?"},
+{k:"며칠 안에 가져오시면 돼요.",m:"Bring it back within a few days."}]},
+{id:"trans",icon:"🚇",en:"Transport",ko:"교통",sub:"Cards, buses, last trains",intro:"Subway lines are color-coded (line 2 = green). Buses board at the front, exit at the rear — tap your card both times. A 티머니 (T-money) card works on every subway and bus; refill it at any convenience store.",lines:[
+{k:"교통카드 충전해 주세요.",r:"gyotong-kadeu chungjeonhae juseyo",e:"Please top up my transit card."},
+{k:"여기서 명동 가요?",r:"yeogiseo myeongdong gayo?",e:"Does this go to Myeongdong?"},
+{k:"다음 정류장이 뭐예요?",r:"daeum jeongryujang-i mwoyeyo?",e:"What's the next stop?"},
+{k:"막차가 몇 시예요?",r:"makchaga myeot siyeyo?",e:"When's the last train?"},
+{k:"실례합니다, 내릴게요.",r:"sillyehamnida, naerilgeyo",e:"Excuse me — I'm getting off."},
+{k:"환승할 수 있나요?",r:"hwanseung-hal su itnayo?",e:"Can I transfer?"}],hear:[
+{k:"뒷문으로 내세요.",m:"Exit through the rear door."},
+{k:"뒤로 가 주세요.",m:"Please move to the back."},
+{k:"내리는 문은 왼쪽입니다.",m:"Doors open on the left."}]},
+{id:"work",icon:"💼",en:"Workplace",ko:"직장",sub:"Email speak, 회식, hierarchy",intro:"First words matter: 잘 부탁드립니다 closes every introduction. Watch 수고하셨습니다 vs 안녕히 가세요 up the hierarchy. Business email is built from set phrases — 검토 (review), 확인 (check), 회신 (reply), 공유 (share); learn ten and you can read 80% of any email.",lines:[
+{k:"안녕하세요, 새로 온 ○○입니다.",r:"annyeonghaseyo, saero on ○○imnida",e:"Hello, I'm the new ○○."},
+{k:"잘 부탁드립니다.",r:"jal butak-deurimnida",e:"I look forward to working with you."},
+{k:"이거 검토 부탁드려도 될까요?",r:"igeo geomto butak-deuryeodo doelkkayo?",e:"Might I ask you to review this?"},
+{k:"죄송한데, 오늘 늦을 것 같습니다.",r:"joesonghande, oneul neujeul geot gassseumnida",e:"Sorry — I'll be late today."},
+{k:"확인했습니다!",r:"hwaginhaetseumnida!",e:"Noted / confirmed!",n:"The chat reply your team wants — send it fast."},
+{k:"먼저 가보겠습니다.",r:"meonjeo gabogessseumnida",e:"I'll head out first."},
+{k:"수고하셨습니다.",r:"sugohasyeossseumnida",e:"Thanks for your hard work."}],hear:[
+{k:"회식 있어요.",m:"We have a team dinner."},
+{k:"오늘까지 부탁드려요.",m:"I need it by today."},
+{k:"확인 후 회신 부탁드립니다.",m:"Please review and reply."}]},
+{id:"daily",icon:"☀️",en:"Daily life",ko:"일상",sub:"Greetings, small talk, culture",intro:"Small talk in Korea skips 'how are you' — it goes straight to meals, weather and (yes) age, because age decides which speech level to use. Questions foreigners find private are often just people building 눈치, not prying.",lines:[
+{k:"안녕하세요!",r:"annyeonghaseyo!",e:"Hello!"},
+{k:"처음 뵙겠습니다.",r:"cheoeum boepgessseumnida",e:"Nice to meet you (first time seeing you)."},
+{k:"저는 ○○에서 왔어요.",r:"jeoneun ○○-eseo wosseoyo",e:"I'm from ○○."},
+{k:"네? 다시 한번 말씀해 주시겠어요?",r:"ne? dasi hanbeon malsseumhae jusigesseoyo?",e:"Sorry? Could you say that again?"},
+{k:"천천히 말해 주시면 이해할 수 있어요.",r:"cheoncheonhi malhae jusimyeon ihaehal su isseoyo",e:"If you speak slowly, I can understand."},
+{k:"좋은 하루 보내세요!",r:"joeun haru bonaeseyo!",e:"Have a good day!"}],hear:[
+{k:"밥 먹었어요?",m:"Hi! (lit: have you eaten?)"},
+{k:"한국 살은 얼마나 됐어요?",m:"How long have you lived in Korea?"},
+{k:"우리 집에 놀러 와요.",m:"Come hang out at our place."}]}
+];
+/* ============ ENGINE + UI ============ */
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const norm=s=>String(s).toLowerCase().replace(/[.,!?;:~'"…·‘’“”\-—(){}[\]「」『』\s]/g,"");
+let TX=[];
+const tx=t=>TX.push(t)-1;
+const state={dir:"k2e",sit:"auto",rel:null,cur:null,last:null,saved:[],hist:[]};
+try{const st=JSON.parse(localStorage.getItem("nunchi1")||"null");if(st){state.saved=st.saved||[];state.hist=st.hist||[];}}catch(e){}
+function persist(){try{localStorage.setItem("nunchi1",JSON.stringify({saved:state.saved.slice(0,80),hist:state.hist.slice(0,30)}));}catch(e){}}
+SLANG.forEach((s,i)=>s.id="sl"+i);
+PHRASES.forEach((p,i)=>p.id="ph"+i);
+const TORI='<svg class="tori" viewBox="0 0 64 64" aria-hidden="true"><circle cx="14" cy="18" r="8" fill="#F6A73C"/><circle cx="50" cy="18" r="8" fill="#F6A73C"/><circle cx="14" cy="18" r="4.5" fill="#FBD9B0"/><circle cx="50" cy="18" r="4.5" fill="#FBD9B0"/><circle cx="32" cy="34" r="23" fill="#F6A73C"/><rect x="27" y="13" width="3.2" height="9" rx="1.6" fill="#3A2A1B"/><rect x="32" y="12" width="3.2" height="10" rx="1.6" fill="#3A2A1B"/><rect x="37" y="13" width="3.2" height="9" rx="1.6" fill="#3A2A1B"/><ellipse cx="32" cy="44" rx="13" ry="10" fill="#FDF6EC"/><circle cx="21.5" cy="33" r="2.7" fill="#231A12"/><circle cx="42.5" cy="33" r="2.7" fill="#231A12"/><path d="M29 41.5 q3 2.6 6 0" stroke="#231A12" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M30.5 38 h3 l-1.5 2.2 z" fill="#231A12"/><circle cx="13" cy="41" r="3.4" fill="#F6B1A3" opacity=".75"/><circle cx="51" cy="41" r="3.4" fill="#F6B1A3" opacity=".75"/></svg>';
+let toastT;
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2400);}
+function speak(t){try{const u=new SpeechSynthesisUtterance(t);u.lang="ko-KR";u.rate=.92;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){toast("Speech isn't available in this preview.");}}
+function copyTxt(t){const done=()=>toast("Copied ✓");if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done).catch(()=>fallbackCopy(t,done));}else fallbackCopy(t,done);}
+function fallbackCopy(t,done){const ta=document.createElement("textarea");ta.value=t;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();try{document.execCommand("copy");done();}catch(e){toast("Copy failed — select the text manually.");}ta.remove();}
+function isSaved(t,id){return state.saved.some(x=>x.t===t&&x.id===id);}
+function toggleSave(t,id,btn){const i=state.saved.findIndex(x=>x.t===t&&x.id===id);if(i>-1){state.saved.splice(i,1);if(btn)btn.classList.remove("on");toast("Removed from 모아두기");}else{state.saved.push({t:t,id:id});if(btn)btn.classList.add("on");toast("Saved to 모아두기 ★");}persist();}
+function setResult(h){$("#empty").style.display="none";const r=$("#result");r.innerHTML=h;const c=r.firstElementChild;if(c)c.scrollIntoView({behavior:"smooth",block:"nearest"});}
+function actsBlock(ko,t,id){return '<div class="resacts"><button class="iconbtn" data-act="speak" data-i="'+tx(ko)+'" aria-label="Listen">🔊</button><button class="iconbtn" data-act="copy" data-i="'+tx(ko)+'" aria-label="Copy">⧉</button><span class="spacer"></span><button class="star '+(isSaved(t,id)?"on":"")+'" data-act="star" data-t="'+t+'" data-id="'+id+'" aria-label="Save">★</button></div>';}
+function replyCard(r){return '<div class="replycard"><div class="k">'+esc(r.ko)+'</div>'+(r.rom?'<div class="r">'+esc(r.rom)+"</div>":"")+'<div class="e">'+esc(r.en)+'</div><div class="replyacts"><button data-act="speak" data-i="'+tx(r.ko)+'">🔊 Listen</button><button data-act="copy" data-i="'+tx(r.ko)+'">⧉ Copy</button></div></div>';}
+function ctxSec(p){return '<div class="sec"><div class="sect">🧭 Context mode <b class="tname">맥락 모드</b></div>'+p.ctx.map((c,i)=>'<div class="ctxcard"><div class="head"><span class="abc">'+"ABC"[i]+'</span><h4>'+esc(c.tag)+'</h4></div><p>'+esc(c.m)+'</p><div class="likely"><b>MORE LIKELY IF —</b> '+esc(c.lg)+'</div></div>').join("")+'<div class="helplist"><b>What would tell you which one it is:</b><ul>'+p.ctxHelp.map(x=>"<li>"+esc(x)+"</li>").join("")+"</ul></div></div>";}
+function replySec(p){const rels=Object.keys(p.replies);if(!state.rel||!rels.includes(state.rel))state.rel=rels[0];
+ const head=p.mode==="next"?"What happens next?":"What should I say back?";
+ return '<div class="sec"><div class="sect">💬 '+head+' <b class="tname">답장 추천</b></div><div class="relrow">'+rels.map(r=>'<button class="relbtn '+(r===state.rel?"active":"")+'" data-act="rel" data-rel="'+r+'">'+REL_LABEL[r]+"</button>").join("")+'</div><div id="relPanel">'+p.replies[state.rel].map(replyCard).join("")+"</div></div>";}
+function slangChips(list){return list.length?'<div class="sec"><div class="sect">🔗 Slang spotted</div>'+list.map(s=>'<button class="slanglink" data-act="slangsheet" data-id="'+s.id+'">'+esc(s.t)+" → "+esc(s.f)+"</button>").join(" ")+"</div>":"";}
+function renderPhrase(p,slangs,keep){TX=[];state.cur={t:"p",id:p.id};if(!keep)state.rel=null;state.last={p:p,slangs:slangs||[]};
+ const sit=SIT_META.find(s=>s.id===p.sit);
+ let h='<div class="card rescard"><div class="sealmark">해석됨</div><div class="ctxline"><span class="tag t-cat">'+(sit?sit.icon+" "+sit.en:"Daily")+'</span><span class="tag t-plain">'+(state.dir==="k2e"?"Korean → English":"English → Korean")+'</span></div><div class="kbig">'+esc(p.ko)+'</div><div class="rom">'+esc(p.rom)+'</div><div class="nat">'+esc(p.nat)+'</div>'+actsBlock(p.ko,"p",p.id)+'<div class="sec"><div class="sect">'+TORI+"<span>Tori's take&nbsp;<b class=\"tname\">토리의 해석</b></span></div>"+'<div class="mean"><b>Literally:</b> '+esc(p.lit)+"<br>"+esc(p.mean)+"</div></div>";
+ if(p.ctx)h+=ctxSec(p);
+ h+='<div class="sec"><div class="sect">📗 Culture note <b class="tname">문화 노트</b></div><div class="culture">'+esc(p.culture)+"</div></div>";
+ h+=slangChips((slangs||[]).filter(s=>!p.ko.includes(s.t)));
+ h+=replySec(p)+"</div>";setResult(h);}
+function renderSlangBody(s){return '<div class="sheethead"><div><div class="term">'+esc(s.t)+'</div><div class="full">→ '+esc(s.f)+'</div></div><button class="star '+(isSaved("s",s.id)?"on":"")+'" data-act="star" data-t="s" data-id="'+s.id+'" aria-label="Save">★</button></div><div class="tags"><span class="tag t-'+s.tier+'">'+TIER_LABEL[s.tier]+'</span><span class="tag t-cat">'+CAT_LABEL[s.cat]+"</span>"+(s.rom?'<span class="tag t-plain">'+esc(s.rom)+"</span>":"")+'</div><div class="sec" style="border:none;padding-top:8px"><div class="sect">Meaning <b class="tname">뜻</b></div><div class="mean">'+esc(s.en)+"</div>"+(s.note?'<p style="font-size:13px;color:var(--sub);margin-top:8px">'+esc(s.note)+"</p>":"")+'</div><div class="sec"><div class="sect">When Koreans use it <b class="tname">언제 쓰나</b></div><div class="when">'+esc(s.when)+'</div></div><div class="sec"><div class="sect">Example <b class="tname">예시</b></div><div class="exwrap"><span class="bub them">'+esc(s.ex.k)+'</span><span class="exen">'+esc(s.ex.e)+'</span></div></div><div class="resacts" style="margin-top:16px"><button class="iconbtn" data-act="speak" data-i="'+tx(s.t)+'" aria-label="Listen">🔊</button><button class="iconbtn" data-act="copy" data-i="'+tx(s.t+" — "+s.f)+'" aria-label="Copy">⧉</button></div>';}
+function renderSlangResult(s){TX=[];setResult('<div class="card rescard"><div class="sealmark">슬랭</div>'+renderSlangBody(s)+'<div class="sec"><div class="sect">'+TORI+"<span>Tori's tip</span></div><div class=\"mean\">Found it in the slang library. Browse <b>Slang 슬랭</b> for "+SLANG.length+" more like this — or paste a full sentence for a full decode.</div></div></div>");}
+function renderFallback(input){TX=[];const kr=/[가-힣]/.test(input);
+ let h='<div class="card fallback">'+TORI+'<div class="big">This one&rsquo;s not in the built-in library yet.</div><p>This prototype decodes fully offline from a hand-curated library of real Korean — this phrase isn&rsquo;t in it. In the full app, an AI engine answers right here; this library is what keeps its answers culture-aware.</p><div class="fbacts"><button class="ghost" data-act="gosit">Open situation kits</button><button class="ghost" data-act="goslang">Browse slang</button>'+(kr?"":'<button class="ghost" data-act="switchdir">This is English — switch direction</button>')+'</div><p style="margin-top:12px">Meanwhile, try one of these:</p><div class="tryrow">'+TRY.map(q=>'<button class="chip" data-act="tryq" data-q="'+esc(q)+'">'+esc(q)+"</button>").join("")+"</div></div>";setResult(h);}
+function decodeKO(input){const q=norm(input);if(!q){renderFallback(input);return;}
+ const slangHits=SLANG.filter(s=>q.includes(norm(s.t))).sort((a,b)=>norm(b.t).length-norm(a.t).length);
+ let p=PHRASES.find(x=>norm(x.ko)===q);
+ if(!p)p=PHRASES.find(x=>norm(x.ko).length>2&&(q.includes(norm(x.ko))||norm(x.ko).includes(q)));
+ if(p){renderPhrase(p,slangHits);return;}
+ if(slangHits.length){renderSlangResult(slangHits[0]);return;}
+ renderFallback(input);}
+function decodeEN(input){const q=input.toLowerCase();let best=null,bs=0;
+ for(const p of PHRASES){let sc=0;for(const k of (p.enKeys||[]))if(q.includes(k))sc+=k.length;if(state.sit===p.sit)sc+=3;if(sc>bs){bs=sc;best=p;}}
+ if(best){renderPhrase(best,[]);return;}
+ renderFallback(input);}
+function decode(){const raw=$("#q").value.trim();if(!raw){toast("Type something Korean — or tap a suggestion below.");return;}
+ state.hist.unshift({q:raw.slice(0,60)});state.hist=state.hist.slice(0,30);persist();
+ if(state.dir==="e2k"&&/[가-힣]/.test(raw)){state.dir="k2e";$$("#dirRow .chip").forEach(c=>c.classList.toggle("active",c.dataset.dir==="k2e"));$("#q").placeholder="Type or paste Korean here…";toast("That's Korean — switched to Korean → English");}
+ if(state.dir==="k2e")decodeKO(raw);else decodeEN(raw);}
+function switchTab(t){$$(".tabbtn").forEach(b=>b.classList.toggle("active",b.dataset.tab===t));$$(".view").forEach(v=>v.classList.toggle("active",v.id==="v-"+t));$("#main").scrollTop=0;if(t==="saved")renderSaved();}
+function buildSitChips(){const el=$("#sitChips");el.innerHTML='<button class="chip active" data-sit="auto">✨ Auto</button>'+SIT_META.map(s=>'<button class="chip" data-sit="'+s.id+'">'+s.icon+" "+s.en+"</button>").join("");el.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{state.sit=c.dataset.sit;el.querySelectorAll(".chip").forEach(x=>x.classList.toggle("active",x===c));});}
+let slangCat="all";
+function buildSlangCats(){const el=$("#slangCats");el.innerHTML='<button class="chip active" data-cat="all">All 전체</button>'+Object.keys(CAT_LABEL).map(c=>'<button class="chip" data-cat="'+c+'">'+CAT_LABEL[c]+"</button>").join("");el.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{slangCat=c.dataset.cat;el.querySelectorAll(".chip").forEach(x=>x.classList.toggle("active",x===c));renderSlang();});}
+function renderSlang(){const q=norm($("#slangSearch").value||"");const list=SLANG.filter(s=>(slangCat==="all"||s.cat===slangCat)&&(!q||norm(s.t+s.f+s.en).includes(q)));
+ $("#slangList").innerHTML=list.map(s=>'<div class="card slangcard" data-act="slangsheet" data-id="'+s.id+'" role="button" tabindex="0"><div class="row1"><span class="term">'+esc(s.t)+'</span><span class="full">→ '+esc(s.f)+'</span><span class="star '+(isSaved("s",s.id)?"on":"")+'" data-act="star" data-t="s" data-id="'+s.id+'" aria-label="Save">★</span></div><div class="row2"><span class="tag t-'+s.tier+'">'+TIER_LABEL[s.tier]+'</span><span class="tag t-plain">'+CAT_LABEL[s.cat]+'</span></div><div class="men">'+esc(s.en)+"</div></div>").join("")||('<div class="card fallback"><div class="big">No match for &ldquo;'+esc($("#slangSearch").value)+'&rdquo;.</div><p>Try a shorter fragment — or browse a category above.</p></div>');}
+function renderSit(){$("#sitList").innerHTML=SIT_META.map(s=>'<div class="card sitcard" data-act="sitsheet" data-id="'+s.id+'" role="button" tabindex="0"><div class="sitico">'+s.icon+'</div><div><h3>'+s.en+"<span>"+s.ko+'</span></h3><p>'+s.sub+"</p></div></div>").join("");}
+function openSitSheet(s){const w=$("#sheetOvl");w.firstElementChild.innerHTML='<div class="grab"></div><div class="sheethead"><div><div class="term">'+s.icon+" "+s.en+'</div><div class="full">'+s.ko+' survival kit</div></div></div><div class="sitintro" style="margin-top:14px">'+s.intro+'</div><div class="sec"><div class="sect">What you can say <b class="tname">할 수 있는 말</b></div>'+s.lines.map(l=>'<div class="line"><div class="k">'+esc(l.k)+'</div><div class="r">'+esc(l.r)+'</div><div class="e">'+esc(l.e)+"</div>"+(l.n?'<div class="n">'+esc(l.n)+"</div>":"")+"</div>").join("")+'</div><div class="sec"><div class="sect">What you&rsquo;ll hear — decoded <b class="tname">듣게 될 말</b></div>'+s.hear.map(l=>'<div class="line"><div class="k">'+esc(l.k)+'</div><div class="n">'+esc(l.m)+"</div></div>").join("")+"</div>";w.hidden=false;}
+function ensureOverlays(){if(document.getElementById("sheetOvl"))return;
+ const o=document.createElement("div");o.id="sheetOvl";o.className="overlay";o.hidden=true;o.innerHTML='<div class="sheet" role="dialog" aria-modal="true"></div>';o.onclick=e=>{if(e.target===o)closeSheet();};document.body.appendChild(o);
+ const m=document.createElement("div");m.id="aboutOvl";m.className="modal";m.hidden=true;m.innerHTML='<div class="modalbox about" role="dialog" aria-modal="true"></div>';m.onclick=e=>{if(e.target===m)closeAbout();};document.body.appendChild(m);}
+function openSlangSheet(s){TX=[];const w=$("#sheetOvl");w.firstElementChild.innerHTML='<div class="grab"></div>'+renderSlangBody(s);w.hidden=false;}
+function closeSheet(){$("#sheetOvl").hidden=true;}
+function closeAbout(){$("#aboutOvl").hidden=true;}
+function openAbout(){const m=$("#aboutOvl");m.firstElementChild.innerHTML='<div style="display:flex;gap:12px;align-items:center"><div class="stamp">통</div><div><div style="font-family:var(--disp);font-size:24px">눈치 <em style="font-style:normal;font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--cobalt)">NUNCHI</em></div><div style="font-size:12.5px;color:var(--sub)">Korean survival companion</div></div></div><p style="margin-top:14px">Don&rsquo;t just translate Korean — understand it. Every decode walks the same path:</p><div class="pipeline"><div class="pipe"><span class="no">1</span>Korean in <small>what they wrote</small></div><div class="pipe"><span class="no">2</span>Literal translation <small>the dictionary answer</small></div><div class="pipe"><span class="no">3</span>What it actually means <small>Tori&rsquo;s take</small></div><div class="pipe"><span class="no">4</span>Context mode <small>the meanings it could be</small></div><div class="pipe"><span class="no">5</span>Culture note <small>why Koreans say it</small></div><div class="pipe"><span class="no">6</span>Your reply <small>natural Korean, per relationship</small></div></div><p><b>Why &ldquo;눈치&rdquo;?</b> 눈치 (noon-chee) is the Korean superpower of reading the room — sensing what people really mean without them saying it. No English word covers it. That gap between translating Korean and understanding Korea is exactly what this app is for.</p><p><b>About this build:</b> it runs 100% on your device, offline, with a hand-curated library of '+SLANG.length+" slang terms, "+PHRASES.length+" phrase decodes and "+SIT_META.length+' situation kits — no account, no cloud. In the full product, an AI engine answers in these same cards, with this library keeping it accurate and culture-aware.</p><p>Made for the foreigners of Korea — 유학생, 직장인, 여행자. 조심히 가세요 🇰🇷</p><button class="pbtn" style="width:100%;justify-content:center;margin-top:14px" data-act="closeabout">Got it</button>';m.hidden=false;}
+function renderSaved(){const box=$("#savedList");
+ const bm=state.saved.map(x=>x.t==="s"?SLANG.find(s=>s.id===x.id):PHRASES.find(p=>p.id===x.id)).filter(Boolean);
+ const bmHTML=bm.length?bm.map(x=>x.f?'<div class="card savedcard" data-act="slangsheet" data-id="'+x.id+'" role="button" tabindex="0"><div class="t"><span class="tt">'+esc(x.t)+'</span><span class="tag t-plain">slang</span></div><p>'+esc(x.en)+"</p></div>":'<div class="card savedcard" data-act="phrase" data-id="'+x.id+'" role="button" tabindex="0"><div class="t"><span class="tt">'+esc(x.ko)+'</span><span class="tag t-plain">decode</span></div><p>'+esc(x.nat)+"</p></div>").join(""):'<div class="card fallback"><div class="big">No bookmarks yet.</div><p>Tap ★ on any slang card or decode to keep it here.</p></div>';
+ const hiHTML=state.hist.length?state.hist.map(h=>'<div class="card histcard" data-act="tryq" data-q="'+esc(h.q)+'" role="button" tabindex="0"><div class="q"><b>'+esc(h.q)+'</b><span>tap to decode again</span></div></div>').join(""):'<div class="card fallback"><div class="big">No history yet.</div><p>Your recent decodes will appear here.</p></div>';
+ box.innerHTML='<div class="sect" style="margin:4px 2px">Bookmarks 북마크</div>'+bmHTML+'<div class="sect" style="margin:16px 2px 4px">Recent decodes 최근 기록</div>'+hiHTML;}
+document.addEventListener("click",e=>{const a=e.target.closest("[data-act]");if(!a)return;const act=a.dataset.act;
+ if(act==="speak")speak(TX[+a.dataset.i]);
+ else if(act==="copy")copyTxt(TX[+a.dataset.i]);
+ else if(act==="star")toggleSave(a.dataset.t,a.dataset.id,a);
+ else if(act==="rel"){state.rel=a.dataset.rel;if(state.last)renderPhrase(state.last.p,state.last.slangs,true);}
+ else if(act==="slangsheet"){const s=SLANG.find(x=>x.id===a.dataset.id);if(s)openSlangSheet(s);}
+ else if(act==="sitsheet"){const s=SIT_META.find(x=>x.id===a.dataset.id);if(s)openSitSheet(s);}
+ else if(act==="phrase"){const p=PHRASES.find(x=>x.id===a.dataset.id);if(p){closeSheet();$("#q").value=p.ko;$("#ccount").textContent=p.ko.length;switchTab("translate");decode();}}
+ else if(act==="tryq"){closeSheet();$("#q").value=a.dataset.q;$("#ccount").textContent=a.dataset.q.length;switchTab("translate");decode();}
+ else if(act==="gosit")switchTab("sit");
+ else if(act==="goslang")switchTab("slang");
+ else if(act==="switchdir"){state.dir="e2k";$$("#dirRow .chip").forEach(c=>c.classList.toggle("active",c.dataset.dir==="e2k"));$("#q").placeholder="Type what you want to say in English…";decode();}
+ else if(act==="closeabout")closeAbout();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeSheet();closeAbout();}if(e.key==="Enter"&&!e.shiftKey&&document.activeElement===$("#q")){e.preventDefault();decode();}});
+$("#goBtn").onclick=decode;
+$("#q").addEventListener("input",e=>$("#ccount").textContent=e.target.value.length);
+$$("#dirRow .chip").forEach(c=>c.onclick=()=>{state.dir=c.dataset.dir;$$("#dirRow .chip").forEach(x=>x.classList.toggle("active",x===c));$("#q").placeholder=state.dir==="k2e"?"Type or paste Korean here…":"Type what you want to say in English…";});
+$$(".tabbtn").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+$("#slangSearch").addEventListener("input",renderSlang);
+$("#infoBtn").onclick=openAbout;
+$("#pasteBtn").onclick=async()=>{try{const t=await navigator.clipboard.readText();if(t){$("#q").value=t;$("#ccount").textContent=t.length;}else toast("Clipboard is empty.");}catch(e){toast("Preview blocks clipboard access — long-press the box and paste.");}};
+let rec=null,recOn=false;
+$("#micBtn").onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){toast("Voice input needs a browser mic — in this preview, please type instead.");return;}
+ if(recOn){rec&&rec.stop();return;}
+ rec=new SR();rec.lang=state.dir==="k2e"?"ko-KR":"en-US";rec.interimResults=true;recOn=true;$("#micBtn").classList.add("rec");
+ rec.onresult=e=>{let t="";for(const r of e.results)t+=r[0].transcript;$("#q").value=t;$("#ccount").textContent=t.length;};
+ rec.onend=()=>{$("#micBtn").classList.remove("rec");recOn=false;};
+ rec.onerror=e=>{$("#micBtn").classList.remove("rec");recOn=false;toast("Mic didn't work ("+(e.error||"error")+") — type it instead.");};
+ rec.start();};
+buildSitChips();buildSlangCats();renderSlang();renderSit();ensureOverlays();
+$("#tryRow").innerHTML=TRY.map(q=>'<button class="chip" data-act="tryq" data-q="'+esc(q)+'">'+esc(q)+"</button>").join("");
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>
